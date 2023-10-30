@@ -1,0 +1,33 @@
+{:monorepo {:app-dir "automaton/automaton_simulation-de"}
+ :publication {:repo {:address "git@github.com:hephaistox/automaton-simulation-de.git"
+                      :branch "main"}
+               :as-lib hephaistox/automaton-simulation
+               :major-version "0.0.%d"
+               :gha-container {:repo-url "git@github.com:hephaistox/gha_image.git"
+                               :repo-branch "main"
+                               :account "hephaistox"
+                               :workflows [[".github/workflows/commit_validation.yml" "gha-automaton-simulation-de"]]}
+               :shadow-cljs {:target-build nil}
+               :jar {:class-dir "target/classes"
+                     :excluded-aliases #{}
+                     :target-filename "target/%s-%s.jar"}}
+ :lconnect {:aliases [:common-test :env-development-repl]}
+ :ltest {:aliases [:env-development-test :common-test]}
+ :la {:selected-tasks ["clean" "clean-hard" "code-doc" "compile-to-jar" "container-clear" "container-list" "gha" "gha-lconnect" "gha-container-publish" "ltest" "push" "report" "update-deps"]}
+ :customer-materials {:html-dir "tmp/html"
+                      :dir "customer_materials"
+                      :pdf-dir "tmp/pdf"}
+ :doc {:dir "docs"
+       :archi {:dir "docs/archi/"}
+       :code-stats {:output-file "docs/code/stats.md"}
+       :reports {:output-files {:comments "docs/code/comments.edn"
+                                :alias "docs/code/alias.edn"
+                                :css "docs/code/css.edn"
+                                :deps-ns "docs/code/deps-ns.svg"
+                                :deps "docs/code/deps.png"
+                                :ns "docs/code/ns.png"}}
+       :code-doc {:dir "docs/code"
+                  :title "Build app automaton"
+                  :description "Autonomous project to build an hephaistox app"}}
+ :clean {:compile-logs-dirs [".cpcache" ".clj-kondo/.cache" "tmp"]}
+ :app-name "automaton-simulation-de"}

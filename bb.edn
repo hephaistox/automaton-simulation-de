@@ -1,0 +1,70 @@
+{:deps {hephaistox/automaton-build-app
+          {:git/sha "16f0e053f28f9ebbdbf8129daf73c04afd47bf00",
+           :git/url "git@github.com:hephaistox/automaton-build-app.git"}},
+ :paths [],
+ :tasks
+   {:enter (let [task-name (-> (babashka.tasks/current-task)
+                               :name
+                               str)]
+             (def execute-task
+               (partial build-task-helper/execute-task
+                        task-name
+                        (build-task-helper/enter-tasks task-name {})))),
+    :init (build-task-helper/init-tasks),
+    :requires [[automaton-build-app.tasks-helper :as build-task-helper]],
+    clean {:doc "Clean cache files for compiles, and logs",
+           :task (execute-task 'automaton-build-app.tasks.clean/clean)},
+    clean-hard
+      {:doc
+         "Clean all files which are not under version control (it doesn't remove untracked file or staged files if there are eligible to `git add .`)",
+       :task (execute-task 'automaton-build-app.tasks.clean/clean-hard)},
+    code-doc {:doc "Create the documentation of the app",
+              :task (execute-task 'automaton-build-app.tasks.doc-clj/code-doc
+                                  {:executing-pf :clj})},
+    compile-to-jar
+      {:doc "Compile that code to a jar",
+       :task (execute-task
+               'automaton-build-app.tasks.code-helpers-clj/compile-to-jar
+               {:executing-pf :clj})},
+    container-clear
+      {:doc "Clear all local containers",
+       :task
+         (execute-task
+           'automaton-build-app.tasks.container-publication/container-clean)},
+    container-list
+      {:doc "List all available containers",
+       :task
+         (execute-task
+           'automaton-build-app.tasks.container-publication/container-list)},
+    gha {:doc "Github action command - is launched automatically by github",
+         :task (execute-task 'automaton-build-app.tasks.test-clj/gha
+                             {:executing-pf :clj})},
+    gha-container-publish
+      {:doc "Publish the container, useful to push the github container itself",
+       :task
+         (execute-task
+           'automaton-build-app.tasks.container-publication/push-gha-from-local)},
+    gha-lconnect {:doc "Connect to a local container running this code",
+                  :task (execute-task
+                          'automaton-build-app.tasks.test/gha-lconnect)},
+    la {:doc "Local acceptance test",
+        :task (execute-task 'automaton-build-app.tasks.test/la)},
+    lconnect {:doc "Local connect - repl",
+              :task (execute-task
+                      'automaton-build-app.tasks.code-helpers/lconnect)},
+    ltest {:doc "Local test",
+           :task (execute-task 'automaton-build-app.tasks.test/ltest)},
+    push {:doc "Push this repo",
+          :task (execute-task
+                  'automaton-build-app.tasks.publication-clj/push-from-local
+                  {:executing-pf :clj})},
+    report {:doc "Creates the reports of code analyzis",
+            :task (execute-task
+                    'automaton-build-app.tasks.code-analyze-clj/reports
+                    {:executing-pf :clj})},
+    update-deps
+      {:doc
+         "Update the dependencies, cider-nrepl and refactor are to be updated manually",
+       :task (execute-task
+               'automaton-build-app.tasks.code-helpers-clj/update-deps
+               {:executing-pf :clj})}}}

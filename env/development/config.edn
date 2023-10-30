@@ -1,0 +1,2 @@
+{:env :development
+ :dev {:clj-nrepl-port 8015}}

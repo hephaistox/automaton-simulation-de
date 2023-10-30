@@ -1,0 +1,4 @@
+-Dheph-conf=env/test/config.edn
+-Dheph-common-conf=env/common_config.edn
+-Dheph-conf=env/development/config.edn
+-Dheph-common-conf=env/common_config.edn
