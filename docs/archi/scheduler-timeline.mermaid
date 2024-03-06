@@ -1,0 +1,22 @@
+block-beta
+  columns 3
+
+  block:group1:3
+    desim2(("UI-RENDERING"))
+    rend["SCHEDULER-ITERATION-PREV"]
+    space
+    a
+    space
+    z
+  end
+
+  block:group2:3
+    desim(("DE-SIMULATION"))
+    schedprev["SCHEDULER-ITERATION-PREV"]
+    space
+    sched["SCHEDULER"]
+    space
+    schednext["SCHEDULER-ITERATION-NEXT"]
+    schedprev --> sched
+    sched --> schednext
+  end

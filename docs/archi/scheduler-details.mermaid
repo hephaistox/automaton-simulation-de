@@ -1,0 +1,14 @@
+erDiagram
+    SCHEDULER |{--|{ SCHEDULER-ITERATION : "iterates on"
+    SCHEDULER o{--|| SCHEDULER-ITERATION : "starts with"
+
+    SCHEDULER-ITERATION {
+        integer id
+    }
+    SCHEDULER-ITERATION ||--o{ PAST-EVENT : "contains"
+    SCHEDULER-ITERATION ||--|| DATE : "happens at"
+    SCHEDULER-ITERATION ||--o{ FUTURE-EVENT : "contains"
+    DATE ||--|| EVENT : "happens at"
+    EVENT |{--|| EVENT-TYPE : "has a"
+    PAST-EVENT |{--|| EVENT : "is a"
+    FUTURE-EVENT |{--|| EVENT : "is a"
