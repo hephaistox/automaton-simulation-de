@@ -1,34 +1,37 @@
 (ns automaton-simulation-de.rendering
   "Temporary namespace, work in progress"
   (:require
-   [automaton-core.utils.keyword :as utils-keyword]
+   [automaton-core.utils.keyword :as core-keyword]
+   [automaton-simulation-de.scheduler.event :as sim-de-event]
    [clojure.string :as str]))
 
 (defn evt-str
-  "Turns an event in a string
+  "Turns an event into a string
 
   Params:
   * `evt` an event"
-  [{:keys [type date]}]
-  (str (utils-keyword/unkeywordize type) "(" date ")"))
+  [{:keys [::sim-de-event/date ::sim-de-event/type] :as _evt}]
+  (str (core-keyword/unkeywordize type)
+       "(" date ")"))
 
 (defn evt-with-data-str
   "Turns an event in a string, including its data
 
   Params:
   * `evt` an event"
-  [{:keys [type date]
-    :as e}]
-  (apply str
-         (utils-keyword/unkeywordize type)
-         (concat ["("]
-                 (str/join ","
-                           (cons date
-                                 (map utils-keyword/unkeywordize
-                                      (vals (apply dissoc e [:type :date])))))
-                 [")"])))
+  [{:keys [::sim-de-event/date ::sim-de-event/type] :as evt}]
+  (apply str (core-keyword/unkeywordize type)
+         (concat
+          ["("]
+          (str/join ","
+                    (cons date
+                          (-> (dissoc evt
+                                      ::sim-de-event/date
+                                      ::sim-de-event/type)
+                              vals)))
+          [")"])))
 
-(defn scheduler-iteration
+(defn scheduler-snapshot
   [state-rendering
    {:keys [id state future-events]
     :as scheduler-iteration}]

@@ -5,24 +5,22 @@
                                                                      "1.0.2"}}
           :ns-default build}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
-                           cider/cider-nrepl #:mvn{:version "0.44.0"}
-                           cider/piggieback #:mvn{:version "0.5.3"}
                            clj-commons/pushy #:mvn{:version "0.3.10"}
                            cljsjs/highlight #:mvn{:version "11.7.0-0"}
                            com.andrewmcveigh/cljs-time #:mvn{:version "0.5.2"}
-                           com.taoensso/encore #:mvn{:version "3.62.1"}
+                           com.taoensso/encore #:mvn{:version "3.97.1"}
                            com.taoensso/sente #:mvn{:version "1.19.2"}
                            com.taoensso/tempura #:mvn{:version "1.5.3"}
                            day8.re-frame/http-fx #:mvn{:version "0.2.4"}
-                           day8.re-frame/re-frame-10x #:mvn{:version "1.9.3"}
+                           day8.re-frame/re-frame-10x #:mvn{:version "1.9.8"}
                            day8.re-frame/tracing #:mvn{:version "0.6.2"}
-                           lambdaisland/uri #:mvn{:version "1.16.134"}
+                           lambdaisland/uri #:mvn{:version "1.19.155"}
                            metosin/reitit #:mvn{:version "0.6.0"}
                            metosin/reitit-frontend #:mvn{:version "0.6.0"}
-                           no.cjohansen/portfolio #:mvn{:version "2023.12.07"}
-                           re-frame/re-frame #:mvn{:version "1.4.2"}
+                           no.cjohansen/portfolio #:mvn{:version "2024.03.18"}
+                           re-frame/re-frame #:mvn{:version "1.4.3"}
                            reagent/reagent #:mvn{:version "1.2.0"}
-                           thheller/shadow-cljs #:mvn{:version "2.26.2"}}
+                           thheller/shadow-cljs #:mvn{:version "2.28.3"}}
               :extra-paths
               ["src/cljs/" "src/cljc/" "resources/" "test/cljs/" "test/cljc/"]}
   :common-test
@@ -30,13 +28,12 @@
    :extra-deps {com.cognitect/test-runner
                 {:git/url "https://github.com/cognitect-labs/test-runner"
                  :sha "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023"}
-                org.clojure/tools.namespace #:mvn{:version "1.4.4"}
-                org.clojure/tools.reader #:mvn{:version "1.3.7"}}
+                org.clojure/tools.namespace #:mvn{:version "1.5.0"}
+                org.clojure/tools.reader #:mvn{:version "1.4.1"}}
    :extra-paths ["test/clj/" "test/cljc/" "test/resources/"]
    :jvm-opts ["-Dheph-conf=env/test/config.edn,env/common_config.edn"]}
   :env-development-repl
-  {:extra-deps {cider/cider-nrepl #:mvn{:version "0.21.1"}
-                org.clojure/core.async #:mvn{:version "1.6.681"}}
+  {:extra-deps {org.clojure/core.async #:mvn{:version "1.6.681"}}
    :extra-paths ["env/development/resources/"
                  "env/development/src/clj/"
                  "env/development/src/cljc/"]
@@ -56,15 +53,15 @@
                "test/cljc"]}}
  :deps {amalloy/ring-gzip-middleware #:mvn{:version "0.1.4"}
         com.taoensso/sente #:mvn{:version "1.19.2"}
-        hiccup/hiccup #:mvn{:version "2.0.0-RC2"}
+        hiccup/hiccup #:mvn{:version "2.0.0-RC3"}
         http-kit/http-kit #:mvn{:version "2.7.0"}
-        metosin/muuntaja #:mvn{:version "0.6.8"}
+        metosin/muuntaja #:mvn{:version "0.6.10"}
         metosin/reitit #:mvn{:version "0.7.0-alpha7"}
         metosin/ring-http-response #:mvn{:version "0.9.3"}
-        mount/mount #:mvn{:version "0.1.17"}
-        org.clojars.hephaistox/automaton-core #:mvn{:version "1.0.2"}
+        mount/mount #:mvn{:version "0.1.18"}
+        org.clojars.hephaistox/automaton-core #:mvn{:version "1.1.2-la"}
         ring-cors/ring-cors #:mvn{:version "0.1.13"}
-        ring/ring #:mvn{:version "1.11.0"}
+        ring/ring #:mvn{:version "1.12.1"}
         ring/ring-anti-forgery #:mvn{:version "1.3.0"}
         ring/ring-ssl #:mvn{:version "0.3.0"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}
