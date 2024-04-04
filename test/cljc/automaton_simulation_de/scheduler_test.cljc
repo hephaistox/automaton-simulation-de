@@ -2,287 +2,253 @@
   (:require
    #?(:clj [clojure.test :refer [deftest is testing]]
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
-   [automaton-core.utils.map :as utils-map]
-   [automaton-simulation-de.event :as sim-de-event]
-   [automaton-simulation-de.scheduler :as sut]
-   [automaton-simulation-de.scheduler.middleware
-    :as
-    sim-de-scheduler-middleware]))
+   [automaton-simulation-de.middleware.request     :as sim-de-request]
+   [automaton-simulation-de.middleware.response    :as sim-de-response]
+   [automaton-simulation-de.ordering               :as sim-de-event-ordering]
+   [automaton-simulation-de.registry               :as sim-de-event-registry]
+   [automaton-simulation-de.scheduler              :as sut]
+   [automaton-simulation-de.scheduler.event        :as sim-de-event]
+   [automaton-simulation-de.scheduler.event-return :as sim-de-event-return]
+   [automaton-simulation-de.scheduler.snapshot     :as sim-de-snapshot]))
 
-;; Problem data
-(def routing
-  {:m1 [:m2]
-   :m2 [:m4]
-   :m3 [:m4]})
+(deftest handler-test
+  (testing "No event execution is stopping the execution"
+    (is (= (sim-de-response/build
+            [{:cause ::sim-de-event-registry/execution-not-found
+              :not-found-type nil}]
+            (sim-de-snapshot/build 3 3 2 {:foo :bar} [] []))
+           (sut/handler (sim-de-request/build
+                         nil
+                         nil
+                         (sim-de-snapshot/build 2 2 2 {:foo :bar} nil nil)
+                         nil
+                         [])))))
+  (testing "Stop in the request is passed to the response"
+    (is (= [{:cause ::test-stopping
+             :current-event nil}]
+           (-> (sut/handler (sim-de-request/build nil
+                                                  (constantly {})
+                                                  nil
+                                                  nil
+                                                  [{:cause ::test-stopping}]))
+               ::sim-de-response/stop))))
+  (testing "Data added in event execution are in the response"
+    (is (= {:foo3 :bar3}
+           (-> (sut/handler (sim-de-request/build
+                             nil
+                             (constantly
+                              (sim-de-event-return/build {:foo3 :bar3} []))
+                             nil
+                             nil
+                             []))
+               (get-in [::sim-de-response/snapshot ::sim-de-snapshot/state])))))
+  (testing "An early event is first in the future list"
+    (is (= (sim-de-event/make-events :a 12 :b 13 :d 15)
+           (-> (sut/handler
+                (sim-de-request/build
+                 nil
+                 (constantly (sim-de-event-return/build
+                              {:foo3 :bar3}
+                              (sim-de-event/make-events :a 12 :d 15 :b 13)))
+                 (sim-de-snapshot/build 1 1 1 nil nil nil)
+                 (sim-de-event-ordering/sorter
+                  [(sim-de-event-ordering/compare-field ::sim-de-event/date)])
+                 []))
+               (get-in [::sim-de-response/snapshot
+                        ::sim-de-snapshot/future-events])))))
+  (testing
+    "Handler raising an exception is skipped, next snapshot is returned, with failing event in the past"
+    (is
+     (= (sim-de-response/build [{:cause ::sut/failed-event-execution
+                                 :error nil}]
+                               (sim-de-snapshot/build
+                                2
+                                2
+                                12
+                                {:foo3 :bar3}
+                                (sim-de-event/make-events :a 10 :b 11 :aa 12)
+                                (sim-de-event/make-events :bb 14)))
+        (-> (sut/handler
+             (sim-de-request/build
+              nil
+              (fn [_ _ _] (throw (ex-info "Arg" {})))
+              (sim-de-snapshot/build 1
+                                     1
+                                     1
+                                     {:foo3 :bar3}
+                                     (sim-de-event/make-events :a 10 :b 11)
+                                     (sim-de-event/make-events :aa 12 :bb 14))
+              (sim-de-event-ordering/sorter
+               [(sim-de-event-ordering/compare-field ::sim-de-event/date)])
+              []))
+            (assoc-in [::sim-de-response/stop 0 :error] nil)))))
+  (testing "An event happened in the past"
+    (is
+     (=
+      [{:cause ::sim-de-response/causality-broken
+        :previous-date 10
+        :next-date 5}]
+      (->
+        (sut/handler
+         (sim-de-request/build
+          nil
+          (constantly (sim-de-event-return/build
+                       {:foo3 :bar3}
+                       (sim-de-event/make-events :a 5 :a 12 :d 15 :b 13)))
+          (sim-de-snapshot/build 1 1 10 nil nil (sim-de-event/make-events :a 5))
+          (sim-de-event-ordering/sorter [])
+          []))
+        (get ::sim-de-response/stop))))))
 
-(def process-time
-  {:m1 1
-   :m2 3
-   :m3 3
-   :m4 1})
-
-(def transportation-duration 2)
-
-;; Events
-(defn evt-init
-  "Add all products arrival to machine M1"
-  [_state
-   future-events
-   {:keys [date]
-    :as _e}]
-  {:state {}
-   :future-events (-> future-events
-                      (concat [{:type :MA
-                                :date date
-                                :product :p1
-                                :machine :m1}
-                               {:type :MA
-                                :date date
-                                :product :p2
-                                :machine :m1}
-                               {:type :MA
-                                :date date
-                                :product :p3
-                                :machine :m1}]))})
-
-(defn machine-arrive
-  "Product `p` is added on machine `m` input buffer at date `d`
-  Creates a new event machine start for the same product `p` starts on machine `m` at date `d`"
-  [state
-   future-events
-   {:keys [date product machine]
-    :as _e}]
-  (let [state (-> state
-                  (update-in [machine :input]
-                             (fn [list-products]
-                               (vec (conj list-products product)))))
-        future-events (->> future-events
-                           (cons {:type :MP
-                                  :date date
-                                  :product product
-                                  :machine machine}))]
-    {:state state
-     :future-events future-events}))
-
-(defn machine-process
-  [state
-   future-events
-   {:keys [date product machine]
-    :as _e}]
-  (let [state (-> state
-                  (update-in [machine :input]
-                             (fn [list-products]
-                               (vec (remove #{product} list-products))))
-                  (assoc-in [machine :process] product))
-        new-date (+ date (process-time machine))
-        future-events (-> future-events
-                          (conj {:type :MT
-                                 :date new-date
-                                 :product product
-                                 :machine machine})
-                          (sim-de-event/postpone-events
-                           (fn [{:keys [type machine]}]
-                             (and (= machine machine) (= type :MP)))
-                           new-date))]
-    {:state state
-     :future-events future-events}))
-
-(defn machine-terminate
-  [state
-   future-events
-   {:keys [date product machine]
-    :as _e}]
-  (let [state (assoc-in state [machine :process] nil)
-        transportation-end-time (+ date transportation-duration)
-        future-events (if-let [next-m (rand-nth (get routing machine))]
-                        (cons {:type :MA
-                               :date transportation-end-time
-                               :product product
-                               :machine next-m}
-                              future-events)
-                        (cons {:type :PT
-                               :date transportation-end-time
-                               :product product}
-                              future-events))]
-    {:state state
-     :future-events future-events}))
-
-(defn part-terminate
-  [state future-events & _]
-  {:state state
-   :future-events future-events})
-
-
-(def ^:private evt-registry-kvs
-  {:IN evt-init
-   :MA machine-arrive
-   :MP machine-process
-   :MT machine-terminate
-   :PT part-terminate})
-
-(defn same-date-ordering
-  [e1 e2]
-  (let [evt-type-priority [:IN :MA :PT :MT :MP]]
-    (cond
-      (not= (:type e1) (:type e2)) (< (.indexOf evt-type-priority (:type e1))
-                                      (.indexOf evt-type-priority (:type e2)))
-      (not= (:product e1) (:product e2)) (neg? (compare (:product e1)
-                                                        (:product e2)))
-      (not= (:machine e1) (:machine e2)) (neg? (compare (:machine e1)
-                                                        (:machine e2))))))
-
-(def scheduler-first-iteration
-  {:id 0
-   :state {}
-   :past-events []
-   :future-events [{:type :IN
-                    :date 0}]})
-(def evt-registry
-  {:event-registry-kvs evt-registry-kvs
-   :event-ordering {:same-date-ordering same-date-ordering}})
+(deftest iterate-test
+  (testing "Nil values are ok"
+    (is (= (sim-de-response/build [{:cause ::sim-de-request/no-future-events}
+                                   {:cause ::sut/nil-handler}]
+                                  (sim-de-snapshot/build 1 1 nil nil [] []))
+           (sut/iterate nil nil nil nil))))
+  (testing "Nil handler is detected"
+    (is (= [{:cause ::sut/nil-handler}]
+           (-> (sut/iterate nil
+                            nil
+                            nil
+                            (sim-de-snapshot/build
+                             1
+                             1
+                             1
+                             nil
+                             nil
+                             (sim-de-event/make-events :a 10 :b 12)))
+               (get-in [::sim-de-response/stop])))))
+  (testing
+    "First event is properly executed, state and future events are up to date"
+    (is
+     (= (sim-de-response/build []
+                               (sim-de-snapshot/build
+                                2
+                                2
+                                10
+                                {:a :b
+                                 :c :d}
+                                (sim-de-event/make-events :a 10)
+                                (sim-de-event/make-events :b 12 :a 13 :b 14)))
+        (sut/iterate
+         {:a (fn [_ state future-events]
+               (sim-de-event-return/build
+                (assoc state :c :d)
+                (concat future-events (sim-de-event/make-events :a 13 :b 14))))}
+         nil
+         sut/handler
+         (sim-de-snapshot/build 1
+                                1
+                                1
+                                {:a :b}
+                                []
+                                (sim-de-event/make-events :a 10 :b 12)))))
+    (is
+     (= (sim-de-response/build []
+                               (sim-de-snapshot/build
+                                2
+                                2
+                                10
+                                {:a :b
+                                 :c :d}
+                                (sim-de-event/make-events :a 10)
+                                []))
+        (sut/iterate
+         {:a (fn [_ state future-events]
+               (sim-de-event-return/build (assoc state :c :d) future-events))}
+         nil
+         sut/handler
+         (sim-de-snapshot/build 1
+                                1
+                                1
+                                {:a :b}
+                                []
+                                (sim-de-event/make-events :a 10))))))
+  (testing "End to end state and future events path"
+    (is
+     (= {::sim-de-snapshot/future-events (sim-de-event/make-events :a 13 :b 14)
+         ::sim-de-snapshot/state {:a :b}}
+        (-> (sut/iterate {:a (fn [_ _ _]
+                               (sim-de-event-return/build
+                                {:a :b}
+                                (sim-de-event/make-events :a 13 :b 14)))}
+                         nil
+                         sut/handler
+                         (sim-de-snapshot/build
+                          1
+                          1
+                          1
+                          {}
+                          []
+                          (sim-de-event/make-events :a 10 :b 12)))
+            ::sim-de-response/snapshot
+            (select-keys [::sim-de-snapshot/future-events
+                          ::sim-de-snapshot/state]))))))
 
 (deftest scheduler-test
-  (testing "scheduler returns expected iteration"
-    (let [{:keys [id state past-events future-events]}
-          (sut/scheduler evt-registry scheduler-first-iteration [])]
-      (is (= 31 id))
-      (is
-       (=
-        [{:type :PT
-          :date 13
-          :product :p3}
-         {:type :PT
-          :date 12
-          :product :p2}
-         {:type :MT
-          :date 11
-          :product :p3
-          :machine :m4}
-         {:type :PT
-          :date 11
-          :product :p1}
-         {:type :MP
-          :date 10
-          :product :p3
-          :machine :m4}
-         {:type :MT
-          :date 10
-          :product :p2
-          :machine :m4}
-         {:type :MA
-          :date 10
-          :product :p3
-          :machine :m4}
-         {:type :MP
-          :date 9
-          :product :p2
-          :machine :m4}
-         {:type :MT
-          :date 9
-          :product :p1
-          :machine :m4}
-         {:type :MA
-          :date 9
-          :product :p2
-          :machine :m4}
-         {:type :MP
-          :date 8
-          :product :p1
-          :machine :m4}
-         {:type :MT
-          :date 8
-          :product :p3
-          :machine :m2}
-         {:type :MA
-          :date 8
-          :product :p1
-          :machine :m4}
-         {:type :MT
-          :date 7
-          :product :p2
-          :machine :m2}
-         {:type :MT
-          :date 6
-          :product :p1
-          :machine :m2}
-         {:type :MP
-          :date 5
-          :product :p3
-          :machine :m2}
-         {:type :MA
-          :date 5
-          :product :p3
-          :machine :m2}
-         {:type :MP
-          :date 4
-          :product :p2
-          :machine :m2}
-         {:type :MA
-          :date 4
-          :product :p2
-          :machine :m2}
-         {:type :MP
-          :date 3
-          :product :p1
-          :machine :m2}
-         {:type :MT
-          :date 3
-          :product :p3
-          :machine :m1}
-         {:type :MA
-          :date 3
-          :product :p1
-          :machine :m2}
-         {:type :MP
-          :date 2
-          :product :p3
-          :machine :m1}
-         {:type :MT
-          :date 2
-          :product :p2
-          :machine :m1}
-         {:type :MP
-          :date 1
-          :product :p2
-          :machine :m1}
-         {:type :MT
-          :date 1
-          :product :p1
-          :machine :m1}
-         {:type :MP
-          :date 0
-          :product :p1
-          :machine :m1}
-         {:type :MA
-          :date 0
-          :product :p3
-          :machine :m1}
-         {:type :MA
-          :date 0
-          :product :p2
-          :machine :m1}
-         {:type :MA
-          :date 0
-          :product :p1
-          :machine :m1}
-         {:type :IN
-          :date 0}]
-        past-events))
-      (is (empty? (utils-map/map-difference state
-                                            {:m1 {:input []
-                                                  :process nil}
-                                             :m2 {:input []
-                                                  :process nil}
-                                             :m4 {:input []
-                                                  :process nil}
-                                             :stop true})))
-      (is (= (count past-events) 31))
-      (is (empty? future-events))))
-  (testing "scheduler stops when stopping criteria is added"
-    (is (= 5
-           (:id (sut/scheduler evt-registry
-                               scheduler-first-iteration
-                               [#(if (> (:id %) 4)
-                                   (sim-de-scheduler-middleware/stop-iteration
-                                    %)
-                                   %)]))))))
+  (testing "No data is ok"
+    (is (= (sim-de-response/build [{:cause ::sim-de-request/no-future-events
+                                    :current-event nil}]
+                                  (sim-de-snapshot/build 1 1 nil nil [] []))
+           (sut/scheduler nil [] nil nil 100))))
+  (testing "A single execution is ok"
+    (is
+     (= (sim-de-response/build [{:cause ::sim-de-request/no-future-events
+                                 :current-event nil}]
+                               (sim-de-snapshot/build
+                                3
+                                3
+                                10
+                                {:foo 1
+                                 :evt :a}
+                                (sim-de-event/make-events :a 10)
+                                []))
+        (sut/scheduler
+         {:a (fn [_ state future-events]
+               (sim-de-event-return/build (assoc state :evt :a) future-events))}
+         []
+         [(sim-de-event-ordering/compare-field ::sim-de-event/date)]
+         (sim-de-snapshot/build 1
+                                1
+                                1
+                                {:foo 1}
+                                nil
+                                (sim-de-event/make-events :a 10))
+         10))))
+  (testing "Looping of 3 iterations is ok"
+    (is
+     (=
+      (sim-de-response/build [{:cause ::sim-de-request/no-future-events
+                               :current-event nil}]
+                             (sim-de-snapshot/build
+                              5
+                              5
+                              12
+                              {:foo 1
+                               :evt-a 1
+                               :evt-b 1
+                               :evt-c 1}
+                              (sim-de-event/make-events :a 10 :c 10 :b 12)
+                              []))
+      (sut/scheduler
+       {:a (fn [_ state future-events]
+             (sim-de-event-return/build
+              (update state :evt-a (fnil inc 0))
+              (concat future-events (sim-de-event/make-events :b 12 :c 10))))
+        :b (fn [_ state future-events]
+             (sim-de-event-return/build (update state :evt-b (fnil inc 0))
+                                        future-events))
+        :c (fn [_ state future-events]
+             (sim-de-event-return/build (update state :evt-c (fnil inc 0))
+                                        future-events))}
+       nil
+       [(sim-de-event-ordering/compare-field ::sim-de-event/date)
+        (sim-de-event-ordering/compare-types [:a :b :c])]
+       (sim-de-snapshot/build 1
+                              1
+                              1
+                              {:foo 1}
+                              nil
+                              (sim-de-event/make-events :a 10))
+       10)))))

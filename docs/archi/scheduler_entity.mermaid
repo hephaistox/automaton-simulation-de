@@ -1,0 +1,10 @@
+erDiagram
+	SCENARIO-MANAGEMENT ||..o{ SCHEDULER : "runs"
+	TIME-BASED-VARIABLE o{--o| SCHEDULER : "feeds"
+  EXECUTION-GRAPH o|..o{ SCHEDULER  : "outputs"
+
+  SCHEDULER ||--|| MIDDLEWARES : "applies"
+  SCHEDULER ||--|{ SNAPSHOT : "creates"
+  SCHEDULER ||--|| SNAPSHOT : "initialization"
+  SCHEDULER  ||--|| ORDERING : "initialization"
+  SCHEDULER  ||--|| REGISTRY : "initialization"

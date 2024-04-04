@@ -14,4 +14,9 @@
                         "target/"
                         "node_modules/"
                         ".shadow-cljs/builds/"]}
-         :reports {:forbiddenwords-words #{"landing" "tap>"}}}}
+         :lfe-test {}
+         :lfe-watch {}
+         :reports {:forbiddenwords-words #{"landing" "tap>"}}
+         :update-deps {:exclude-libs
+                       #{"org.clojars.hephaistox/automaton-build@*-*"
+                         "org.clojars.hephaistox/automaton-core@*-*"}}}}

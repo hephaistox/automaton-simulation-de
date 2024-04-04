@@ -4,4 +4,7 @@
    [automaton-core.repl :as core-repl])
   (:gen-class))
 
-(defn -main "Main entry point for repl" [& _args] (core-repl/start-repl))
+(defn -main
+  "Main entry point for repl"
+  [& args]
+  (core-repl/start-repl args (core-repl/default-middleware) (constantly nil)))

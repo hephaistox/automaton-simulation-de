@@ -44,3 +44,6 @@ docs/codox
 tmp
 repos
 containers
+
+#archive file when creating pom.xml, not need to store it
+pom.properties

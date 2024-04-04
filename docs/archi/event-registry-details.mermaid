@@ -1,8 +1,0 @@
-erDiagram
-    EVENT-REGISTRY ||--|| EVENT-ORDERING : contains
-    EVENT-REGISTRY ||--o{ EVENT-REGISTRY-KV : defines
-	  EVENT-REGISTRY-KV o{--|| EVENT-TYPE : key
-	  EVENT-REGISTRY-KV o{--|| EVENT-EXECUTION : value
-
-		EVENT-ORDERING ||--|| DATE-ORDERING : contains
-		EVENT-ORDERING ||--|| SAME-DATE-ORDERING : contains
