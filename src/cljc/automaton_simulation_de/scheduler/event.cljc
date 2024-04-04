@@ -15,9 +15,7 @@ Each event defines following outputs:
 
   Event structure is a map with at least two keys:
   * `type` a the event type as found in `evt-type-priority`.
-  * `date` as a date."
-  (:require
-   [automaton-core.adapters.schema :as core-schema]))
+  * `date` as a date.")
 
 (defn schema
   "An event is a tuple which first value is a keyword for the event type, the second is a date"
@@ -42,8 +40,7 @@ Each event defines following outputs:
   Params:
   * `evt-defs` collection of pair type and date."
   [& evt-defs]
-  (mapv (partial apply make-event)
-        (partition 2 evt-defs)))
+  (mapv (partial apply make-event) (partition 2 evt-defs)))
 
 (defn postpone-events
   "For all events in `events` for which `(event-filter-fn event)` is true, its date is postponed to `date`
@@ -53,6 +50,6 @@ Each event defines following outputs:
   * `event-filter-fn` function apply to each event (event-filter-fn event).
   * `date` date to postpone to."
   [events event-filter-fn date]
-  (core-schema/assert-schemas [:maybe [:sequential (schema)]] events)
-  (mapv (fn [event] (if (event-filter-fn event) (assoc event ::date date) event))
+  (mapv (fn [event]
+          (if (event-filter-fn event) (assoc event ::date date) event))
         events))

@@ -14,6 +14,9 @@
                         "target/"
                         "node_modules/"
                         ".shadow-cljs/builds/"]}
-         :update-deps {:exclude-libs #{"org.clojars.hephaistox/automaton-build@*-*"
-                                       "org.clojars.hephaistox/automaton-core@*-*"}}
-         :reports {:forbiddenwords-words #{"automaton-build" "landing" "tap>"}}}}
+         :lfe-test {}
+         :lfe-watch {}
+         :reports {:forbiddenwords-words #{"landing" "tap>"}}
+         :update-deps {:exclude-libs
+                       #{"org.clojars.hephaistox/automaton-build@*-*"
+                         "org.clojars.hephaistox/automaton-core@*-*"}}}}

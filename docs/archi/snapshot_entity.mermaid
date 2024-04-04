@@ -4,6 +4,6 @@ erDiagram
         integer iteration}
    SNAPSHOT ||--|| STATE : "contains"
    SNAPSHOT ||--|| DATE : "happens at"
-   SNAPSHOT |{--|{ SCHEDULER  : "iterates on"
+   SNAPSHOT |{--|{ SCHEDULER  : "iterated by"
 	 SNAPSHOT ||--o{ PAST-EVENT : "contains"
    SNAPSHOT ||--o{ FUTURE-EVENT : "contains"

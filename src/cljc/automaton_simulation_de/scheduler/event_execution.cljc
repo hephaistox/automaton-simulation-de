@@ -3,7 +3,7 @@
 
   * [See entity](docs/archi/event_execution.png)"
   (:require
-   [automaton-simulation-de.scheduler.event :as sim-de-event]
+   [automaton-simulation-de.scheduler.event        :as sim-de-event]
    [automaton-simulation-de.scheduler.event-return :as sim-de-event-return]))
 
 (defn schema
@@ -11,8 +11,5 @@
   []
   [:function
    [:=>
-    [:cat
-     :any
-     [:sequential (sim-de-event/schema)]
-     (sim-de-event/schema)]
+    [:cat :any [:sequential (sim-de-event/schema)] (sim-de-event/schema)]
     (sim-de-event-return/schema)]])

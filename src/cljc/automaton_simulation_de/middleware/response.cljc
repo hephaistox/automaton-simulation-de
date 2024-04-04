@@ -33,12 +33,9 @@
   * `stop` reason to stop"
   [previous-snapshot stop]
   (let [next-snapshot (sim-de-snapshot/next-snapshot previous-snapshot)]
-    (build (cond-> (if (nil? stop)
-                     []
-                     stop)
-             (pos?
-              (compare (::sim-de-snapshot/date previous-snapshot)
-                       (::sim-de-snapshot/date next-snapshot)))
+    (build (cond-> (if (nil? stop) [] stop)
+             (pos? (compare (::sim-de-snapshot/date previous-snapshot)
+                            (::sim-de-snapshot/date next-snapshot)))
              (conj {:cause ::causality-broken
                     :previous-date (::sim-de-snapshot/date previous-snapshot)
                     :next-date (::sim-de-snapshot/date next-snapshot)}))
@@ -50,7 +47,14 @@
   * `response`
   * `m` map"
   [response m]
+  (update response ::stop conj m))
+
+(defn add-current-event
+  "Add current event to stop reasons
+  Params:
+  * `response`
+  * `current-event`"
+  [response current-event]
   (update response
           ::stop
-          conj
-          m))
+          (partial map #(assoc % :current-event current-event))))

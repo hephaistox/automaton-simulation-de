@@ -17,9 +17,11 @@
     (let [iteration (get-in request
                             [::sim-de-request/snapshot
                              ::sim-de-snapshot/iteration])]
-      (-> (cond-> request
-            (< iteration n) (update ::sim-de-request/stop conj
-                                    [{:cause ::nth-iteration
-                                      :iteration iteration
-                                      :n n}]))
+      (-> (cond->
+            request (< iteration n)
+            (update ::sim-de-request/stop
+                    conj
+                    [{:cause ::nth-iteration
+                      :iteration iteration
+                      :n n}]))
           handler))))

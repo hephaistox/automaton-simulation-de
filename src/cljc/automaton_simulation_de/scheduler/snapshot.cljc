@@ -7,7 +7,7 @@ Remarks:
 
   * [See entity](docs/archi/snapshot_entity.png)"
   (:require
-   [automaton-simulation-de.scheduler.event :as sim-de-event]
+   [automaton-simulation-de.scheduler.event        :as sim-de-event]
    [automaton-simulation-de.scheduler.event-return :as sim-de-event-return]))
 
 (defn schema
@@ -32,28 +32,19 @@ Remarks:
 
   Params:
   * `previous-snapshot`
-  Returns a triple with the current event, future events and the new snapshot"
-  [{::keys [id iteration state past-events future-events]
-         :or {past-events []
-              future-events []
-              iteration 0
-              id 0}
-    :as previous-snapshot}]
-  (let [event (first future-events)
-        new-future-events (or (rest future-events) [])
-        {::sim-de-event/keys [date]
-         :or {date (::date previous-snapshot)}} event
-        new-past-events (if (nil? event)
-                          past-events
-                          (conj past-events event))
-        new-iteration (inc iteration)
-        new-id (inc id)]
-    {::id new-id
-     ::iteration new-iteration
-     ::date date
+  Returns a snapshot."
+  [previous-snapshot]
+  (let [{:keys [::id ::iteration ::state ::past-events ::future-events]}
+        previous-snapshot
+        [event & new-future-events] future-events
+        {:keys [::sim-de-event/date]} event
+        new-past-events (if (nil? event) past-events (conj past-events event))]
+    {::id ((fnil inc 0) id)
+     ::iteration ((fnil inc 0) iteration)
+     ::date (if (nil? date) (::date previous-snapshot) date)
      ::state state
-     ::past-events new-past-events
-     ::future-events new-future-events}))
+     ::past-events (if (nil? new-past-events) [] new-past-events)
+     ::future-events (if (nil? new-future-events) [] new-future-events)}))
 
 (defn build
   "Creates a snapshot"
@@ -62,12 +53,8 @@ Remarks:
    ::iteration iteration
    ::date date
    ::state state
-   ::past-events (if (nil? past-events)
-                   []
-                   past-events)
-   ::future-events (if (nil? future-events)
-                     []
-                     future-events)})
+   ::past-events (if (nil? past-events) [] past-events)
+   ::future-events (if (nil? future-events) [] future-events)})
 
 (defn inconsistency?
   "Check snapshot consistency
@@ -75,14 +62,18 @@ Remarks:
   Returns sequence of future events which are before current date
   or past events which are after current date
   Returns false if consistent"
-  [{:keys [::date] :as snapshot}]
+  [{:keys [::date]
+    :as snapshot}]
   (if (nil? date)
     ::nil-date
     (let [res (-> (select-keys snapshot [::future-events ::past-events])
-                  (update ::future-events (partial filterv #(> date (::sim-de-event/date %))))
-                  (update ::past-events (partial filterv #(< date (::sim-de-event/date %)))))]
-      (if (= res {::future-events []
-                  ::past-events []})
+                  (update ::future-events
+                          (partial filterv #(> date (::sim-de-event/date %))))
+                  (update ::past-events
+                          (partial filterv #(< date (::sim-de-event/date %)))))]
+      (if (= res
+             {::future-events []
+              ::past-events []})
         false
         res))))
 
@@ -104,10 +95,10 @@ Remarks:
   * `sorting` function taking a sequence of `future-events` and returns the sorted sequence
   * `snapshot` "
   [event-return sorting snapshot]
-  (let [{::sim-de-event-return/keys [state future-events]} event-return]
+  (let [{:keys [::sim-de-event-return/state
+                ::sim-de-event-return/future-events]}
+        event-return]
     (-> snapshot
-        (assoc ::future-events (or (if (fn? sorting)
-                                     (sorting future-events)
-                                     future-events)
-                                   [])
+        (assoc ::future-events
+               (or (if (fn? sorting) (sorting future-events) future-events) [])
                ::state state))))

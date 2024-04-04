@@ -27,12 +27,13 @@
   * `e1` is an event
   * `e2` is an event"
   [field]
-  (fn [e1  e2]
+  (fn [e1 e2]
     (let [d1 (field e1)
           d2 (field e2)]
-      (cond (nil? d1) 666
-            (nil? d2) -666
-            :else (compare d1 d2)))))
+      (cond
+        (nil? d1) 666
+        (nil? d2) -666
+        :else (compare d1 d2)))))
 
 (defn compare-types
   "Compares two events with their types, based on their ordering in `evt-type-priorities`
@@ -48,11 +49,12 @@
   (fn [e1 e2]
     (let [te1 (::sim-de-event/type e1)
           te2 (::sim-de-event/type e2)]
-      (cond (nil? te1) 666
-            (nil? te2) -666
-            (not= te1 te2) (- (.indexOf evt-type-priorities te1)
-                              (.indexOf evt-type-priorities te2))
-            :else 0))))
+      (cond
+        (nil? te1) 666
+        (nil? te2) -666
+        (not= te1 te2) (- (.indexOf evt-type-priorities te1)
+                          (.indexOf evt-type-priorities te2))
+        :else 0))))
 
 (defn- orders
   "Orders events by date, if events have the same date (`date-ordering` returns nil), than they are sorted with `same-date-ordering`.
@@ -66,12 +68,11 @@
   [event-orderings e1 e2]
   (loop [event-orderings event-orderings]
     (let [event-ordering (first event-orderings)
-          res (if (some? event-ordering)
-                (event-ordering e1 e2)
-                0)]
-      (cond (nil? event-ordering) 0
-            (zero? res) (recur (rest event-orderings))
-            :else res))))
+          res (if (some? event-ordering) (event-ordering e1 e2) 0)]
+      (cond
+        (nil? event-ordering) 0
+        (zero? res) (recur (rest event-orderings))
+        :else res))))
 
 (defn sorter
   "Returns a function with two events as parameters and returning the comparison of them, according to event-orderings
@@ -79,7 +80,4 @@
   Params:
   * `events-orderings`"
   [event-orderings]
-  (fn [events]
-    (sort (fn [e1 e2]
-            (orders event-orderings e1 e2))
-          events)))
+  (fn [events] (sort (fn [e1 e2] (orders event-orderings e1 e2)) events)))

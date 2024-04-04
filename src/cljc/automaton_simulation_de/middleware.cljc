@@ -6,8 +6,4 @@
   (:require
    [automaton-simulation-de.middleware.request :as sim-de-request]))
 
-(defn schema
-  []
-  [:=>
-   [:cat (sim-de-request/schema)]
-   :map])
+(defn schema [] [:=> [:cat (sim-de-request/schema)] :map])

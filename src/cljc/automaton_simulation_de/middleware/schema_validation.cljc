@@ -2,10 +2,10 @@
   "Used to validate both request and response
   The inconsistency of snapshots in both request and response are also detected"
   (:require
-   [automaton-core.adapters.schema :as core-schema]
-   [automaton-simulation-de.middleware.request :as sim-de-request]
+   [automaton-core.adapters.schema              :as core-schema]
+   [automaton-simulation-de.middleware.request  :as sim-de-request]
    [automaton-simulation-de.middleware.response :as sim-de-response]
-   [automaton-simulation-de.scheduler.snapshot :as sim-de-snapshot]))
+   [automaton-simulation-de.scheduler.snapshot  :as sim-de-snapshot]))
 
 (defn request-validation
   "Validate the request is well formed
@@ -18,18 +18,19 @@
   * `handler`"
   [handler]
   (fn [request]
-    (let [request-error (core-schema/validate-data-humanize (sim-de-request/schema)
-                                                            request)
-          request-inconsistency (sim-de-snapshot/inconsistency? (::sim-de-request/snapshot request))]
-      (-> (cond-> request
-            (some? request-error) (update ::sim-de-request/stop
-                                          conj {:cause ::request-schema
-                                                :request request
-                                                :error request-error})
-            (not (false? request-inconsistency)) (update ::sim-de-request/stop
-                                                         conj {:cause ::request-inconsistency
-                                                               :request request
-                                                               :error request-inconsistency}))
+    (let [request-error
+          (core-schema/validate-data-humanize (sim-de-request/schema) request)
+          request-inconsistency (sim-de-snapshot/inconsistency?
+                                 (::sim-de-request/snapshot request))]
+      (-> (cond->
+            request (some? request-error)
+            (sim-de-request/add-stop {:cause ::request-schema
+                                      :request request
+                                      :error request-error})
+            (not (false? request-inconsistency))
+            (sim-de-response/add-stop {:cause ::request-inconsistency
+                                       :request request
+                                       :error request-inconsistency}))
           handler))))
 
 (defn response-validation
@@ -44,24 +45,17 @@
   [handler]
   (fn [request]
     (let [response (handler request)
-          response-error (core-schema/validate-data-humanize (sim-de-response/schema)
-                                                             response)
-          response-inconsistency (sim-de-snapshot/inconsistency? (::sim-de-response/snapshot response))]
+          response-error
+          (core-schema/validate-data-humanize (sim-de-response/schema) response)
+          response-inconsistency (sim-de-snapshot/inconsistency?
+                                  (::sim-de-response/snapshot response))]
       (cond-> response
         (some? response-error) (update ::sim-de-response/stop
-                                       conj {:cause ::response-schema
-                                             :response response
-                                             :error response-error})
-        (not (false? response-inconsistency)) (update ::sim-de-response/stop
-                                                      conj {:cause ::response-inconsistency
-                                                            :response response
-                                                            :error response-inconsistency})))))
-
-(defn state-rendering
-  "Apply a rendering function to the state"
-  [rendering-fn handler]
-  (fn [request]
-    (-> request
-        (get-in [::sim-de-request/snapshot ::sim-de-snapshot/state])
-        rendering-fn)
-    (handler request)))
+                                       conj
+                                       {:cause ::response-schema
+                                        :response response
+                                        :error response-error})
+        (not (false? response-inconsistency))
+        (sim-de-response/add-stop {:cause ::response-inconsistency
+                                   :response response
+                                   :error response-inconsistency})))))
