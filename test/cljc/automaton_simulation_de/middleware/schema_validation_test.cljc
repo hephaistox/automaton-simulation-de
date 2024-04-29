@@ -66,18 +66,6 @@
                ::sim-de-response/stop)))
     (is
      (=
-      (-> ((sut/response-validation (fn [_]
-                                      (sim-de-response/build
-                                       []
-                                       (sim-de-snapshot/build
-                                        1
-                                        1
-                                        1
-                                        nil
-                                        (sim-de-event/make-events :a 2)
-                                        (sim-de-event/make-events :a 0)))))
-           nil)
-          ::sim-de-response/stop)
       [{:cause ::sut/response-inconsistency
         :response (sim-de-response/build []
                                          (sim-de-snapshot/build
@@ -97,7 +85,19 @@
                                                      [#:automaton-simulation-de.scheduler.event{:type
                                                                                                 :a
                                                                                                 :date
-                                                                                                2}]}}])))
+                                                                                                2}]}}]
+      (-> ((sut/response-validation (fn [_]
+                                      (sim-de-response/build
+                                       []
+                                       (sim-de-snapshot/build
+                                        1
+                                        1
+                                        1
+                                        nil
+                                        (sim-de-event/make-events :a 2)
+                                        (sim-de-event/make-events :a 0)))))
+           nil)
+          ::sim-de-response/stop))))
   (testing "Invalid request is detected"
     (is (seq? (-> ((sut/response-validation (fn [_] {})) nil)
                   ::sim-de-response/stop)))))

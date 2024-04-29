@@ -29,9 +29,6 @@ Remarks:
 
 (defn next-snapshot
   "Creates the next snapshot based on the previous one and decision of what is the event and new-past-events and new-future-events
-
-  Params:
-  * `previous-snapshot`
   Returns a snapshot."
   [previous-snapshot]
   (let [{:keys [::id ::iteration ::state ::past-events ::future-events]}
@@ -56,6 +53,17 @@ Remarks:
    ::past-events (if (nil? past-events) [] past-events)
    ::future-events (if (nil? future-events) [] future-events)})
 
+(defn initial
+  "Creates an initial snapshsot"
+  [starting-evt-type date]
+  (build 1
+         1
+         0
+         {}
+         []
+         [{::sim-de-event/type starting-evt-type
+           ::sim-de-event/date date}]))
+
 (defn inconsistency?
   "Check snapshot consistency
 
@@ -68,9 +76,15 @@ Remarks:
     ::nil-date
     (let [res (-> (select-keys snapshot [::future-events ::past-events])
                   (update ::future-events
-                          (partial filterv #(> date (::sim-de-event/date %))))
+                          (partial filterv
+                                   #(let [d (::sim-de-event/date %)]
+                                      (or (nil? d)
+                                          (> date (::sim-de-event/date %))))))
                   (update ::past-events
-                          (partial filterv #(< date (::sim-de-event/date %)))))]
+                          (partial filterv
+                                   #(let [d (::sim-de-event/date %)]
+                                      (or (nil? d)
+                                          (< date (::sim-de-event/date %)))))))]
       (if (= res
              {::future-events []
               ::past-events []})
@@ -79,6 +93,7 @@ Remarks:
 
 (defn update-snapshot-with-event-return
   "Updates the `snapshot` with the `event-return` `state` and `future-events` data.
+  Events are sorted are sorted according to `sorting` function, which takes a sequence of `future-events` and returns the sorted sequence.
 
   * Design decision: `state` and `future-events` are replaced with values returned by the event execution
      * Rationale:
@@ -88,12 +103,7 @@ Remarks:
        * The events should update the value of the state
        * The events should not update the difference only
      * Limits
-       * Not known
-
-  Params:
-  * `event-return` return of the event to execute
-  * `sorting` function taking a sequence of `future-events` and returns the sorted sequence
-  * `snapshot` "
+       * Not known."
   [event-return sorting snapshot]
   (let [{:keys [::sim-de-event-return/state
                 ::sim-de-event-return/future-events]}

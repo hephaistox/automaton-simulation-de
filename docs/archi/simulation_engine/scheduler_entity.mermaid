@@ -1,0 +1,7 @@
+erDiagram
+	SCENARIO-MANAGEMENT ||..o{ SCHEDULER : "triggers"
+	TIME-BASED-VARIABLE o{--o| SCHEDULER : "feeds"
+  EXECUTION-GRAPH o|..o{ SCHEDULER  : "outputs"
+  SCHEDULER o{--|| MODEL : "initiates"
+  SCHEDULER ||--|{ SNAPSHOT : "creates"
+  SCHEDULER ||--|{ RENDERING : "displays"

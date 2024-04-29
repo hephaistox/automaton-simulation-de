@@ -6,19 +6,13 @@
    [clojure.string                          :as str]))
 
 (defn evt-str
-  "Turns an event into a string
-
-  Params:
-  * `evt` an event"
+  "Turns an event `evt` into a string."
   [{:keys [::sim-de-event/date ::sim-de-event/type]
     :as _evt}]
   (str (core-keyword/unkeywordize type) "(" date ")"))
 
 (defn evt-with-data-str
-  "Turns an event in a string, including its data
-
-  Params:
-  * `evt` an event"
+  "Turns an event `evt` into a string, including its data."
   [{:keys [::sim-de-event/date ::sim-de-event/type]
     :as evt}]
   (apply str

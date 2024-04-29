@@ -3,7 +3,7 @@
    #?(:clj [clojure.test :refer [deftest is testing]]
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
    [automaton-core.adapters.schema                 :as core-schema]
-   [automaton-simulation-de.ordering               :as sim-de-event-ordering]
+   [automaton-simulation-de.ordering               :as sim-de-ordering]
    [automaton-simulation-de.scheduler.event        :as sim-de-event]
    [automaton-simulation-de.scheduler.event-return :as sim-de-event-return]
    [automaton-simulation-de.scheduler.snapshot     :as sut]))
@@ -110,8 +110,8 @@
         (sut/update-snapshot-with-event-return
          (sim-de-event-return/build {:foo :bar}
                                     (sim-de-event/make-events :a 20 :c 12))
-         (sim-de-event-ordering/sorter [(sim-de-event-ordering/compare-field
-                                         ::sim-de-event/date)])
+         (sim-de-ordering/sorter [(sim-de-ordering/compare-field
+                                   ::sim-de-event/date)])
          (sut/build 1 1 1 {:a :b} [] (sim-de-event/make-events :a 10 :b 12))))))
   (testing "Future events are sorted"
     (is (= (sut/build 1 1 1 {:foo :bar} [] [])

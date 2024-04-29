@@ -12,10 +12,7 @@
 
   Check the request's value is compatible with the scherma and its snapshot is consistent
 
-  Stop could be `::request-inconsistency` or `::request-schema`
-
-  Params:
-  * `handler`"
+  Stop could be `::request-inconsistency` or `::request-schema`."
   [handler]
   (fn [request]
     (let [request-error
@@ -38,10 +35,7 @@
 
   Check the response's value is compatible with the schema and its snapshot is consistent
 
-  Stop could be `::response-inconsistency` or `::response-schema`
-
-  Params:
-  * `handler`"
+  Stop could be `::response-inconsistency` or `::response-schema`."
   [handler]
   (fn [request]
     (let [response (handler request)

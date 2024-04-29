@@ -1,0 +1,9 @@
+stateDiagram-v2
+   classDef event fill:darkgrey, color:black
+   classDef public_api fill:lightgrey, color:black
+
+    [*] --> available
+    available --> consumed
+    consumed --> available
+    available --> [*]
+    consumed --> [*]

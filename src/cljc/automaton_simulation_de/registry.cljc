@@ -18,11 +18,7 @@
   [:map-of :keyword (sim-de-event-execution/schema)])
 
 (defn get
-  "Get the execution based on the type.
-
-  Params:
-  * `event-registry` is a map of event type to event execution
-  * `event` event which code will be executed
+  "Get in the `event-registry` the event id called `event`.
 
   Returns the execution function
   * with parameters:
@@ -34,10 +30,7 @@
   (clojure.core/get event-registry (::sim-de-event/type event) nil))
 
 (defn add-registry-stop
-  "Adds a stop reason at `::execution` if the registry entry is not found
-  Params:
-  * `response`
-  * `event`"
+  "Adds a stop reason at `::execution` if the registry entry is not found."
   [response event]
   (sim-de-response/add-stop response
                             {:cause ::execution-not-found
