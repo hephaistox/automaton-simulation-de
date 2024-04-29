@@ -1,0 +1,7 @@
+erDiagram
+	RC_MODELLING ||..o{ MODEL : "triggers"
+  MODEL ||--|| SCHEDULER : "initiates"
+  MODEL ||--|| MIDDLEWARES : "applies"
+  MODEL ||--|| SNAPSHOT : "initialization"
+  MODEL  ||--|| ORDERING : "initialization"
+  MODEL  ||--|| REGISTRY : "initialization"

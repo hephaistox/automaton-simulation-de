@@ -1,0 +1,5 @@
+erDiagram
+  EVENT-EXECUTION o{--o{ RESOURCE : dispose
+  EVENT-EXECUTION o{--o{ RESOURCE : seize
+  RESOURCE ||--|| QUEUE : "stores blocked events in"
+  RESOURCE ||--|| CURRENTLY_CONSUMING : "store events"

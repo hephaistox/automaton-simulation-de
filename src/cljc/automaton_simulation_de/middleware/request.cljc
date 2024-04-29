@@ -25,14 +25,7 @@
 (defn build
   "Builds a request for the middleware, with iteration dependant data.
 
-  Returns a map, with the data necessary for the request.
-
-  Params:
-  * `current-event`
-  * `event-execution`
-  * `scheduler-snapshot`
-  * `sorting`
-  * `stop`"
+  Returns a map, with the data necessary for the request."
   [current-event event-execution snapshot sorting stop]
   {::stop stop
    ::snapshot snapshot
@@ -41,16 +34,14 @@
    ::sorting sorting})
 
 (defn prepare
-  "Creates a request, based on event execution, snapshot and sorting
+  "Creates a request, based on:
+  * `event-execution` that will be executed,
+  * a `snapshot` of the state of the simulation engine before this iteration,
+  * `sorting` function that take the future events and returns sorted future events
 
   Returns the request gathering the snapshot, the sorting, stopping reasons.
 
-  Predefined stopping reasons are when no future events exist.
-
-  Params:
-  * `event-execution` event execution, fn that takes a snapshot and return a event-return
-  * `snapshot` the snapshot before the iteration
-  * `sorting` function that take the future events and returns sorted future events"
+  Predefined stopping reasons are when no future events exist."
   [current-event event-execution snapshot sorting]
   (let [{:keys [::sim-de-snapshot/future-events]} snapshot]
     (build current-event
@@ -61,9 +52,6 @@
              (empty? future-events) (conj {:cause ::no-future-events})))))
 
 (defn add-stop
-  "Add map `m` among stop causes
-  Params:
-  * `request`
-  * `m` map"
+  "Adds to the `request` the map `m` among stop causes."
   [request m]
   (update request ::stop conj m))

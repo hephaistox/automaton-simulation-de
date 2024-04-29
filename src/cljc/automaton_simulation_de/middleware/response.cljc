@@ -13,11 +13,7 @@
    [::snapshot (sim-de-snapshot/schema)]])
 
 (defn build
-  "Creates a response
-
-  Params:
-  * `stop`
-  * `snapshot`"
+  "Creates a response with the `stop` ans `snapshot`."
   [stop snapshot]
   {::stop stop
    ::snapshot snapshot})
@@ -26,11 +22,7 @@
   "Prepares a response based on the snapshot before the iteration
 
   Returns a response containing the next snapshot and the stop coming from the request.
-  A stop condition is added if the `next-snapshot` happens before the current `previous-snapshot`.
-
-  Params:
-  * `previous-snaphot`
-  * `stop` reason to stop"
+  A stop condition is added if the `next-snapshot` happens before the current `previous-snapshot`."
   [previous-snapshot stop]
   (let [next-snapshot (sim-de-snapshot/next-snapshot previous-snapshot)]
     (build (cond-> (if (nil? stop) [] stop)
@@ -42,19 +34,13 @@
            next-snapshot)))
 
 (defn add-stop
-  "Add map `m` among stop causes
-  Params:
-  * `response`
-  * `m` map"
+  "Add map `m` among stop causes."
   [response m]
   (update response ::stop conj m))
 
 (defn add-current-event
-  "Add current event to stop reasons
-  Params:
-  * `response`
-  * `current-event`"
+  "Adds current event to stop reasons."
   [response current-event]
-  (update response
-          ::stop
-          (partial map #(assoc % :current-event current-event))))
+  (cond-> response
+    (some? current-event)
+    (update ::stop (partial map #(assoc % :current-event current-event)))))

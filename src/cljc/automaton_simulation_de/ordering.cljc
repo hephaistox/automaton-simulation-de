@@ -18,14 +18,10 @@
   (:require
    [automaton-simulation-de.scheduler.event :as sim-de-event]))
 
+(defn schema [] [:function [:=> [:cat :any :any] :boolean]])
+
 (defn compare-field
-  "Returns a function to compare `e1` and `e2` based on values of field `field`
-
-  nil values are accepted
-
-  Params:
-  * `e1` is an event
-  * `e2` is an event"
+  "Returns a function to compare `e1` and `e2` based on values of field `field`. `nil` values are accepted."
   [field]
   (fn [e1 e2]
     (let [d1 (field e1)
@@ -36,15 +32,8 @@
         :else (compare d1 d2)))))
 
 (defn compare-types
-  "Compares two events with their types, based on their ordering in `evt-type-priorities`
-
-  Params:
-  * `evt-type-priorities` list of event priorities, ordered with higher priority first in the list
-  * `e1` first event
-  * `e2` second event
-  both events as defined in `automaton-simulation-de.event`
-
-  Returns true if `e1` is before `e2`"
+  "Compares two events `e1` and `e2` with their types, based on their ordering in `evt-type-priorities`, list of event priorities, ordered with higher priority first in the list.
+  Returns the difference of their position in the `evt-type-priorities`, which is `0` in case of equality, negative if `e1` is before `e2`."
   [evt-type-priorities]
   (fn [e1 e2]
     (let [te1 (::sim-de-event/type e1)
@@ -57,27 +46,18 @@
         :else 0))))
 
 (defn- orders
-  "Orders events by date, if events have the same date (`date-ordering` returns nil), than they are sorted with `same-date-ordering`.
-  Applies caller defined decision on which event should be executed first
-
-  Params:
-  * `event-sortings` matching `schema`
-  * `e1` event
-  * `e2` event
-  both events as defined in `automaton-simulation-de.event`"
-  [event-orderings e1 e2]
-  (loop [event-orderings event-orderings]
-    (let [event-ordering (first event-orderings)
-          res (if (some? event-ordering) (event-ordering e1 e2) 0)]
+  "Orders events by date.
+  Applies caller defined decision on which event should be executed first."
+  [orderings e1 e2]
+  (loop [orderings orderings]
+    (let [ordering (first orderings)
+          res (if (some? ordering) (ordering e1 e2) 0)]
       (cond
-        (nil? event-ordering) 0
-        (zero? res) (recur (rest event-orderings))
+        (nil? ordering) 0
+        (zero? res) (recur (rest orderings))
         :else res))))
 
 (defn sorter
-  "Returns a function with two events as parameters and returning the comparison of them, according to event-orderings
-
-  Params:
-  * `events-orderings`"
-  [event-orderings]
-  (fn [events] (sort (fn [e1 e2] (orders event-orderings e1 e2)) events)))
+  "Returns a function with two events as parameters and returning the comparison of them, according to event-orderings."
+  [orderings]
+  (fn [events] (sort (fn [e1 e2] (orders orderings e1 e2)) events)))

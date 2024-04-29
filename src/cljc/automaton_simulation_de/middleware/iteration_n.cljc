@@ -5,13 +5,8 @@
    [automaton-simulation-de.scheduler.snapshot :as sim-de-snapshot]))
 
 (defn wrap-iteration-n
-  "Stop after iteration n
-
-  Writes `::stop` in the request under the `::scheduler-middleware-request/stop` keyword
-
-  Params:
-  * `n` the number of iteration
-  * `handler`"
+  "Stop after the iteration numbered `n`.
+  Writes `::stop` in the request under the `::scheduler-middleware-request/stop` keyword."
   [n handler]
   (fn [request]
     (let [iteration (get-in request
