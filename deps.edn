@@ -36,5 +36,5 @@
                "test/clj"
                "-d"
                "test/cljc"]}}
- :deps {org.clojars.hephaistox/automaton-core #:mvn{:version "1.2.3-2-la"}}
+ :deps {org.clojars.hephaistox/automaton-core #:mvn{:version "1.2.3-3-la"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}

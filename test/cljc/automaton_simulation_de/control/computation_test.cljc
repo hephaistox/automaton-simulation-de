@@ -5,7 +5,8 @@
    [automaton-core.adapters.schema                       :as core-schema]
    [automaton-simulation-de.control                      :as sim-de-control]
    [automaton-simulation-de.control.computation          :as sut]
-   [automaton-simulation-de.control.computation.response :as sim-de-comp-resp]
+   [automaton-simulation-de.control.computation.response :as
+                                                         sim-de-comp-response]
    [automaton-simulation-de.demo.control                 :as sim-demo-control]))
 
 (defn- it-nb
@@ -42,16 +43,18 @@
       (let [resp (sut/scheduler-response regular-model
                                          [[:iteration-nth {:n 10}]]
                                          0)]
-        (is (nil? (core-schema/validate-data-humanize sim-de-comp-resp/schema
-                                                      resp)))
+        (is (nil? (core-schema/validate-data-humanize
+                   sim-de-comp-response/schema
+                   resp)))
         (is (= 10
                (-> resp
                    it-nb)))
         (is (= :success (:automaton-simulation-de.control/status resp))))
       (let [resp (sut/scheduler-response regular-model
                                          [[:iteration-nth {:n 10}]])]
-        (is (nil? (core-schema/validate-data-humanize sim-de-comp-resp/schema
-                                                      resp)))
+        (is (nil? (core-schema/validate-data-humanize
+                   sim-de-comp-response/schema
+                   resp)))
         (is (= 10
                (-> resp
                    it-nb)))
@@ -59,8 +62,9 @@
       (let [resp (sut/scheduler-response infinite-model
                                          [[:iteration-nth {:n 10}]]
                                          0)]
-        (is (nil? (core-schema/validate-data-humanize sim-de-comp-resp/schema
-                                                      resp)))
+        (is (nil? (core-schema/validate-data-humanize
+                   sim-de-comp-response/schema
+                   resp)))
         (is (= 10
                (-> resp
                    it-nb)))
@@ -98,8 +102,9 @@
                (-> resp
                    :automaton-simulation-de.control/status))))
       (let [resp (sut/scheduler-response regular-model [] 0)]
-        (is (nil? (core-schema/validate-data-humanize sim-de-comp-resp/schema
-                                                      resp)))
+        (is (nil? (core-schema/validate-data-humanize
+                   sim-de-comp-response/schema
+                   resp)))
         (is (= 32
                (-> resp
                    it-nb)))
@@ -107,8 +112,9 @@
                (-> resp
                    :automaton-simulation-de.control/status))))
       (let [resp (sut/scheduler-response regular-model)]
-        (is (nil? (core-schema/validate-data-humanize sim-de-comp-resp/schema
-                                                      resp)))
+        (is (nil? (core-schema/validate-data-humanize
+                   sim-de-comp-response/schema
+                   resp)))
         (is (= 32
                (-> resp
                    it-nb)))
@@ -142,7 +148,7 @@
                    state-stp-context))
             "Nil is acceptable value for iteration number")
         (is (nil? (core-schema/validate-data-humanize
-                   sim-de-comp-resp/schema
+                   sim-de-comp-response/schema
                    (sut/scheduler-response regular-model mdw nil))))
         (is (= :p2
                (-> (sut/scheduler-response regular-model mdw 8)
