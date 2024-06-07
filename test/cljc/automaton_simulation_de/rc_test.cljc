@@ -207,64 +207,38 @@
                                       :future-events []}
                (resource-update-cacheproof ::test 7))))))
 
+(defn- wo-initial-snapshot
+  [model]
+  (dissoc model ::sim-de-model/initial-snapshot))
+
+(defn- resources-kw
+  [model]
+  (-> model
+      (get-in
+       [::sim-de-model/initial-snapshot ::sim-de-snapshot/state ::sut/resource])
+      keys
+      set))
+
 (deftest wrap-model-test
   (testing "If no resource is defined, doesn't change the model"
-    (is (nil? (sut/wrap-model nil nil)))
-    (is (nil? (sut/wrap-model nil {}))))
+    (is (nil? (sut/wrap-model nil nil nil nil)))
+    (is (nil? (sut/wrap-model nil {} nil nil))))
   (testing "Resources are added"
-    (is
-     (= {:a :b
-         ::sim-de-model/initial-snapshot
-         {::sim-de-snapshot/state
-          {::sut/resource {:a #::sut{:renewable? true
-                                     :preemption-policy ::sut/no-preemption
-                                     :queue []
-                                     :currently-consuming {}
-                                     :unblocking-policy ::sut/FIFO
-                                     :name :a
-                                     :capacity 1}
-                           :b #::sut{:preemption-policy ::sut/no-preemption
-                                     :queue []
-                                     :currently-consuming {}
-                                     :unblocking-policy ::sut/FIFO
-                                     :name :b
-                                     :renewable? true
-                                     :capacity 1}}}}}
-        (-> {:a :b}
-            (sut/wrap-model {:a nil
-                             :b {}})
-            (update-in [::sim-de-model/initial-snapshot ::sim-de-snapshot/state]
-                       sim-de-rc-state-test/uncache
-                       :a)
-            (update-in [::sim-de-model/initial-snapshot ::sim-de-snapshot/state]
-                       sim-de-rc-state-test/uncache
-                       :b)))))
+    (is (= [{:a :b} #{:ra :rb}]
+           ((juxt wo-initial-snapshot resources-kw)
+            (-> {:a :b}
+                (sut/wrap-model {:rc {:ra nil
+                                      :rb {}}}
+                                nil
+                                nil))))))
   (testing "Existing data are not overidden"
-    (is
-     (= {:a :b
-         ::sim-de-model/initial-snapshot
-         {::sim-de-snapshot/state
-          {::sut/resource {:a #::sut{:renewable? true
-                                     :preemption-policy ::sut/no-preemption
-                                     :queue []
-                                     :currently-consuming {}
-                                     :unblocking-policy ::sut/FIFO
-                                     :name :a
-                                     :capacity 1}
-                           :b #::sut{:preemption-policy ::sut/no-preemption
-                                     :g :h
-                                     :queue []
-                                     :currently-consuming {}
-                                     :unblocking-policy ::sut/FIFO
-                                     :name :b
-                                     :renewable? true
-                                     :capacity 1}}}}}
-        (-> {:a :b}
-            (sut/wrap-model {:a nil
-                             :b #::sut{:g :h}})
-            (update-in [::sim-de-model/initial-snapshot ::sim-de-snapshot/state]
-                       sim-de-rc-state-test/uncache
-                       :a)
-            (update-in [::sim-de-model/initial-snapshot ::sim-de-snapshot/state]
-                       sim-de-rc-state-test/uncache
-                       :b))))))
+    (is (= [{:a :b} #{:ra :rb :rc :rd}]
+           ((juxt wo-initial-snapshot resources-kw)
+            (-> {:a :b
+                 ::sim-de-model/initial-snapshot {::sim-de-snapshot/state
+                                                  {::sut/resource {:ra :ra
+                                                                   :rb :rb}}}}
+                (sut/wrap-model {:rc {:rc nil
+                                      :rd {}}}
+                                nil
+                                nil)))))))

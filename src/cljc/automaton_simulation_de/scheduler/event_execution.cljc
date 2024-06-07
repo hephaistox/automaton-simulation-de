@@ -6,10 +6,9 @@
    [automaton-simulation-de.scheduler.event        :as sim-de-event]
    [automaton-simulation-de.scheduler.event-return :as sim-de-event-return]))
 
-(defn schema
+(def schema
   "An event is a tuple which first value is a keyword for the event type, the second is a date"
-  []
   [:function
    [:=>
-    [:cat :any [:sequential (sim-de-event/schema)] (sim-de-event/schema)]
-    (sim-de-event-return/schema)]])
+    [:cat :any [:sequential sim-de-event/schema] sim-de-event/schema]
+    sim-de-event-return/schema]])

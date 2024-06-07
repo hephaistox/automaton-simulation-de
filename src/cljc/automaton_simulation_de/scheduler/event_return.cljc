@@ -1,14 +1,14 @@
 (ns automaton-simulation-de.scheduler.event-return
-  "What is returned by an event"
+  "What is returned by an event."
   (:refer-clojure :exclude [nth])
   (:require
-   [automaton-simulation-de.scheduler.event :as sim-de-event]))
+   [automaton-simulation-de.scheduler.event    :as sim-de-event]
+   [automaton-simulation-de.scheduler.snapshot :as sim-de-snapshot]))
 
-(defn schema
-  []
+(def schema
   [:map {:closed true}
    [::state :any]
-   [::future-events [:sequential (sim-de-event/schema)]]])
+   [::future-events [:sequential sim-de-event/schema]]])
 
 (defn build
   [state future-events]
@@ -41,3 +41,7 @@
 (defn if-return
   [event-return condition then-fn else-fn]
   (if condition (then-fn event-return) (else-fn event-return)))
+
+(defn update-snapshot
+  [snapshot {::keys [future-events state]}]
+  (sim-de-snapshot/update snapshot future-events state))

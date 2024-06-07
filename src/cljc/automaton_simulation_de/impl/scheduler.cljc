@@ -1,8 +1,7 @@
 (ns automaton-simulation-de.impl.scheduler
-  "Scheduler
-  The scheduler is creating the next scheduler snapshot, until the stopping criteria are met. It is executing scheduler middleware with each scheduler snapshot.
+  "The `scheduler` is working with a `model` describing the problem to solve.
 
-  For each scheduler snapshot created, the scheduleris sorting the future events based on the event ordering defined in the event-registry. The first event of that order is executed (see event execution). The resulting new values of state, past events, future events are used to create the new scheduler snapshot.
+  For each scheduler snapshot created, the scheduler is sorting the `future-events` based on the event ordering defined in the event-registry. The first event of that order is executed (see event execution). The resulting new values of state, past events, future events are used to create the new scheduler snapshot.
 
   An event has three parameters `(event-execution current-event state new-future-events)`:
   * `current-event` which is the current event to execute
@@ -11,118 +10,170 @@
 
   The returned value is a `event-return`, which future events have no needs to be sorted, they will be by the scheduler.
 
-  This `event-return` contains the stop reason, that could be:
-  * `::no-future-events` when no future events exists
-  * `::causality-broken` when the date of the event is in the past
-  * `::execution-not-found` when the type is unknown
-  * `::failed-event-execution` when the execution of the event if raising an exception
-  * `::nil-handler` when the handler is not given
-  * `::max-iteration-number` the maximum iteartion number is reached
-
-
-  * [See entity](docs/archi/scheduler_entity.png)
-  * [See aggregate](docs/archi/scheduler_aggregate.png)
-  * [See state diagram](docs/archi/scheduler_state.png)
-
-    ### Causality
-    Causality is a property of the simulation model stating that a future event cannot change what has been done in the past already, so all changes in the state should not contradict any past event. For instance, anticipating an event would lead to causality violation."
-  (:refer-clojure :exclude [iterate])
+  ![entities](archi/scheduler_entity.png)
+  ![aggregate](archi/scheduler_aggregate.png)
+  ![state diagram](archi/scheduler_state.png)"
   (:require
-   [automaton-core.adapters.schema              :as core-schema]
-   [automaton-simulation-de.impl.middlewares    :as sim-de-middlewares]
-   [automaton-simulation-de.impl.model          :as sim-de-model]
-   [automaton-simulation-de.middleware.request  :as sim-de-request]
-   [automaton-simulation-de.middleware.response :as sim-de-response]
-   [automaton-simulation-de.ordering            :as sim-de-ordering]
-   [automaton-simulation-de.registry            :as sim-de-registry]
-   [automaton-simulation-de.scheduler.snapshot  :as sim-de-snapshot]))
+   [automaton-core.adapters.schema                                  :as
+                                                                    core-schema]
+   [automaton-simulation-de.impl.built-in-sd.execution-not-found
+    :as sim-de-execution-not-found]
+   [automaton-simulation-de.impl.built-in-sd.failed-event-execution
+    :as sim-failed-event-execution]
+   [automaton-simulation-de.impl.built-in-sd.no-future-events
+    :as sim-de-no-future-events]
+   [automaton-simulation-de.impl.middleware.registry
+    :as sim-de-middleware-registry]
+   [automaton-simulation-de.impl.middlewares
+    :as sim-de-middlewares]
+   [automaton-simulation-de.impl.model
+    :as sim-de-model]
+   [automaton-simulation-de.impl.model-data
+    :as sim-de-model-data]
+   [automaton-simulation-de.impl.stopping.criteria
+    :as sim-de-criteria]
+   [automaton-simulation-de.ordering
+    :as sim-de-ordering]
+   [automaton-simulation-de.request
+    :as sim-de-request]
+   [automaton-simulation-de.response
+    :as sim-de-response]
+   [automaton-simulation-de.scheduler.event
+    :as sim-de-event]
+   [automaton-simulation-de.scheduler.event-return
+    :as sim-de-event-return]
+   [automaton-simulation-de.scheduler.snapshot
+    :as sim-de-snapshot]))
 
 (defn handler
-  "Handler is executing a request and returning a response.
-  An handler could be wrapped with middlewares."
-  [request]
-  (let [{:keys [::sim-de-request/stop
-                ::sim-de-request/snapshot
-                ::sim-de-request/event-execution
-                ::sim-de-request/sorting]}
-        request
-        {:keys [::sim-de-snapshot/state ::sim-de-snapshot/future-events]}
-        snapshot
-        [current-event & new-future-events] future-events
-        response (sim-de-response/prepare snapshot stop)]
+  "The handler execution is based on `request` data and is returning a `response`, it could be enriched with `middlewares`.
+
+  The `response` is initiated  with the `stopping-causes` of the `request`, and the `snapshot`. If succesful, it is updated with `state` and `future-events` of the `event-execution`.
+
+  It may happen that errors occur and `handler` creates `stopping-cause` as:
+
+  * `sim-de-execution-not-found` if an `event-execution` is not found, that event is moved to `past-events` and the `stopping-cause` added.
+  * `sim-failed-event-execution` if an exception is raised during `event-execution`, the `stopping-cause` is added."
+  [{::sim-de-request/keys
+    [stopping-causes snapshot event-execution sorting current-event]
+    :as _request}]
+  (let [response (sim-de-response/build stopping-causes snapshot)]
     (cond
-      (seq stop) response
-      (nil? event-execution) (sim-de-registry/add-registry-stop response
-                                                                current-event)
-      :else (try (let [event-return
-                       (event-execution current-event state new-future-events)]
-                   (update response
-                           ::sim-de-response/snapshot
-                           (partial
-                            sim-de-snapshot/update-snapshot-with-event-return
-                            event-return
-                            sorting)))
+      (seq stopping-causes) response
+      (not (fn? event-execution))
+      (-> response
+          (sim-de-execution-not-found/evaluates
+           (get-in snapshot [::sim-de-snapshot/future-events 0]))
+          (sim-de-response/consume-first-event current-event))
+      :else (try (let [{::sim-de-snapshot/keys [state future-events]} snapshot
+                       [current-event & future-events-wo-current] future-events
+                       event-return (event-execution current-event
+                                                     state
+                                                     future-events-wo-current)]
+                   (-> response
+                       (sim-de-response/consume-first-event current-event)
+                       (update ::sim-de-response/snapshot
+                               sim-de-event-return/update-snapshot
+                               event-return)
+                       (update ::sim-de-response/snapshot
+                               sim-de-snapshot/sort-future-events
+                               sorting)))
                  (catch #?(:clj Exception
                            :cljs :default)
                    e
-                   (sim-de-response/add-stop response
-                                             {:cause ::failed-event-execution
-                                              :error e}))))))
+                   (-> response
+                       (sim-failed-event-execution/evaluates e current-event)
+                       (sim-de-response/consume-first-event current-event)))))))
 
-(defn iterate
-  "Iterates on the scheduler, it executes the handler based on data in the `snapshot`, and creates the next one.
-  The event that is executed thanks to the code found for that event in the `registry`, mapping event type to `event-execution`.
-  A scheduler iteration should not access past or future events to have some information on the state of the simulation.
-  Returns the response, the next snapshot, with state, future and past data updated according to event execution."
-  [registry sorting handler snapshot]
-  (let [{:keys [::sim-de-snapshot/future-events]} snapshot
-        current-event (first future-events)
-        event-execution (sim-de-registry/get registry current-event)
-        request
-        (sim-de-request/prepare current-event event-execution snapshot sorting)
-        {:keys [::sim-de-request/stop]} request]
-    (-> (cond
-          (not (fn? handler))
-          (sim-de-response/prepare snapshot (conj stop {:cause ::nil-handler}))
-          :else (handler request))
-        (sim-de-response/add-current-event current-event))))
+(defn scheduler-loop
+  "`scheduler-loop` is one loop iteration of the scheduler.
 
-(defn scheduler*
-  [registry middlewares ordering initial-snapshot max-iteration]
-  (let [sorting (sim-de-ordering/sorter ordering)
-        wrapped-handler (sim-de-middlewares/wrap-handler handler middlewares)
+  It is picking the first `event` of the `future-events` is the `current-event`, used to get the `event-execution`.
+  It starts with the build of a `request`, call the `handler` wrapped in `middlewares` and add `current-event` to the potential `stopping-causes`
+
+  Some error may create some `stopping-causes`, they are not stopping execution here, to give a chance to middlewares to add some other `stopping-causes`:
+
+  * `no-future-events` which is happening when no event is found in the `future-events` to be executed."
+  [event-registry
+   sorting
+   ahandler
+   {::sim-de-snapshot/keys [future-events]
+    :as snapshot}
+   stopping-criterias]
+  (let [current-event (first future-events)
+        event-execution (get event-registry (::sim-de-event/type current-event))
+        stopping-causes (->> stopping-criterias
+                             (mapv #(sim-de-criteria/evaluates % snapshot))
+                             (filter some?))
+        request #::sim-de-request{:stopping-causes stopping-causes
+                                  :snapshot snapshot
+                                  :event-execution event-execution
+                                  :current-event current-event
+                                  :sorting sorting}]
+    (-> request
+        (sim-de-no-future-events/evaluates future-events)
+        ahandler
+        (sim-de-response/add-current-event-to-stopping-causes current-event))))
+
+(defn invalid-inputs
+  "Returns a map describing why it is invalid or `nil` if it is valid."
+  [model scheduler-middlewares scheduler-stopping-criterias snapshot]
+  (let [validate-data {:model (sim-de-model/validate model)
+                       :snapshot (sim-de-snapshot/validate snapshot)
+                       :scheduler-middlewares
+                       (core-schema/validate-data-humanize
+                        sim-de-model-data/middlewares-schema
+                        scheduler-middlewares)
+                       :scheduler-stopping-criteria
+                       (core-schema/validate-data-humanize
+                        sim-de-model-data/stopping-criterias-schema
+                        scheduler-stopping-criterias)}]
+    (when (not-every? nil? (vals validate-data)) validate-data)))
+
+(defn scheduler
+  "The scheduler executes the `model` until a `stopping-cause` is met.
+
+  Note that users can enrich the execution of it by:
+  * enriching the `model` with augmented registries.
+  * supplementary middlewares and stopping criteria that don't affect the model
+
+  Note that particular attention has been paid to leverage model's preparation, e.g. stopping-criteria and middlewares aren't translated again, just their `scheduler` version is.
+
+  Returns a `response` with the last snapshot and the `stopping-causes`."
+  [model scheduler-middlewares scheduler-stopping-criterias snapshot]
+  (let [{::sim-de-model/keys [registry middlewares ordering stopping-criterias]}
+        model
+        event-registry (:event registry)
+        updated-middlewares (->> scheduler-middlewares
+                                 (map (partial
+                                       sim-de-middleware-registry/data-to-fn
+                                       (:middleware registry)))
+                                 (filterv some?))
+        updated-scs (->> scheduler-stopping-criterias
+                         (map (partial sim-de-criteria/api-data-to-entity
+                                       (:stopping registry)))
+                         (filter some?)
+                         (mapv sim-de-criteria/out-of-model)
+                         (concat stopping-criterias))
+        initial-snapshot
+        (if (map? snapshot) snapshot (sim-de-snapshot/build 1 1 nil {} [] []))
+        sorting (sim-de-ordering/sorter ordering)
+        wrapped-handler (->> updated-middlewares
+                             (sim-de-middlewares/concat-supp-middlewares
+                              middlewares)
+                             (sim-de-middlewares/wrap-handler handler))
         sorted-snapshot
         (update initial-snapshot ::sim-de-snapshot/future-events sorting)]
     (loop [iteration-nb 1
            snapshot sorted-snapshot]
-      (let [{:keys [::sim-de-response/stop ::sim-de-response/snapshot]
-             :as response}
-            (iterate registry sorting wrapped-handler snapshot)]
-        (cond
-          (seq stop) response
-          (>= iteration-nb max-iteration) (sim-de-response/add-stop
-                                           response
-                                           {:cause ::max-iteration-number
-                                            :max-iteration max-iteration
-                                            :iteration iteration-nb})
-          :else (recur (inc iteration-nb) snapshot))))))
-
-(defn scheduler
-  "The scheduler is creating the next `scheduler-snapshot`, until the `stopping criteria` are met. It is executing scheduler middleware with each scheduler snapshot.
-
-  For each `scheduler-snapshot` created, the scheduler is sorting the future events based on the event `ordering` defined in the `event-registry`. The first element in ordering is sorted first, in case of tie, the second order is used, and so on.
-  The first `event` of that order is the current event, this event is executed (see `event-execution`). The resulting new values of state, past events, future events are used to create the new `scheduler-snapshot`.
-
-  Stopping criteria is checked by looking for `:stop` key in scheduler-iteration state being `true`.
-
-  Returns last `snapshot`"
-  [model]
-  (if (core-schema/validate-data (sim-de-model/schema) model)
-    (let [{:keys [::sim-de-model/registry
-                  ::sim-de-model/middlewares
-                  ::sim-de-model/ordering
-                  ::sim-de-model/initial-snapshot
-                  ::sim-de-model/max-iteration]}
-          model]
-      (scheduler* registry middlewares ordering initial-snapshot max-iteration))
-    (core-schema/validate-data-humanize (sim-de-model/schema) model)))
+      (let [response (scheduler-loop event-registry
+                                     sorting
+                                     wrapped-handler
+                                     snapshot
+                                     updated-scs)
+            {stopping-causes ::sim-de-response/stopping-causes
+             result-snapshot ::sim-de-response/snapshot}
+            response]
+        (if (seq stopping-causes)
+          response
+          (recur (inc iteration-nb) result-snapshot))))))

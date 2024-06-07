@@ -3,5 +3,5 @@ erDiagram
 	TIME-BASED-VARIABLE o{--o| SCHEDULER : "feeds"
   EXECUTION-GRAPH o|..o{ SCHEDULER  : "outputs"
   SCHEDULER o{--|| MODEL : "initiates"
-  SCHEDULER ||--|{ SNAPSHOT : "creates"
-  SCHEDULER ||--|{ RENDERING : "displays"
+  SCHEDULER o{--|| SNAPSHOT : "initiates"
+  SCHEDULER ||--|{ RESPONSE : "returns"

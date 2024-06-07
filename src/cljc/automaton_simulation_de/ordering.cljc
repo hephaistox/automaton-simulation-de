@@ -18,7 +18,7 @@
   (:require
    [automaton-simulation-de.scheduler.event :as sim-de-event]))
 
-(defn schema [] [:function [:=> [:cat :any :any] :boolean]])
+(def schema [:function [:=> [:cat :any :any] :boolean]])
 
 (defn compare-field
   "Returns a function to compare `e1` and `e2` based on values of field `field`. `nil` values are accepted."
@@ -61,3 +61,9 @@
   "Returns a function with two events as parameters and returning the comparison of them, according to event-orderings."
   [orderings]
   (fn [events] (sort (fn [e1 e2] (orders orderings e1 e2)) events)))
+
+(defn data-to-fn
+  [[kind data :as _ordering-data]]
+  (case kind
+    :field (compare-field data)
+    :type (compare-types data)))

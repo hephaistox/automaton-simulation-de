@@ -1,9 +1,13 @@
 (ns automaton-simulation-de.middleware-test
   (:require
+   [automaton-core.adapters.schema     :as core-schema]
    #?(:clj [clojure.test :refer [deftest is testing]]
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
-   [automaton-core.adapters.schema     :as core-schema]
    [automaton-simulation-de.middleware :as sut]))
 
+(deftest id-schema-test
+  (is (nil? (core-schema/validate-humanize sut/id-schema))))
+
 (deftest schema-test
-  (testing "Schema" (is (nil? (core-schema/validate-humanize (sut/schema))))))
+  (testing "Valid schema?"
+    (is (nil? (core-schema/validate-humanize sut/schema)))))

@@ -3,255 +3,233 @@
    #?(:clj [clojure.test :refer [deftest is testing]]
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
    [automaton-simulation-de.impl.model             :as sim-de-model]
+   [automaton-simulation-de.impl.registry          :as sim-de-registry]
    [automaton-simulation-de.impl.scheduler         :as sut]
-   [automaton-simulation-de.middleware.request     :as sim-de-request]
-   [automaton-simulation-de.middleware.response    :as sim-de-response]
    [automaton-simulation-de.ordering               :as sim-de-ordering]
-   [automaton-simulation-de.registry               :as sim-de-registry]
+   [automaton-simulation-de.request                :as sim-de-request]
+   [automaton-simulation-de.response               :as sim-de-response]
    [automaton-simulation-de.scheduler.event        :as sim-de-event]
    [automaton-simulation-de.scheduler.event-return :as sim-de-event-return]
    [automaton-simulation-de.scheduler.snapshot     :as sim-de-snapshot]))
 
+(defn- first-stopping-definition-id
+  [response]
+  (-> response
+      ::sim-de-response/stopping-causes
+      first
+      :stopping-criteria
+      :stopping-definition
+      :id))
+
+(defn- snapshot-id
+  [response]
+  (-> response
+      ::sim-de-response/snapshot
+      ::sim-de-snapshot/id))
+
+(defn- snapshot-iteration
+  [response]
+  (-> response
+      ::sim-de-response/snapshot
+      ::sim-de-snapshot/iteration))
+
+(defn- state
+  [response]
+  (get-in response [::sim-de-response/snapshot ::sim-de-snapshot/state]))
+
+(defn- future-events
+  [response]
+  (get-in response
+          [::sim-de-response/snapshot ::sim-de-snapshot/future-events]))
+
+(defn- latest-past-event
+  [response]
+  (-> response
+      (get-in [::sim-de-response/snapshot ::sim-de-snapshot/past-events])
+      last))
+
+(defn- snapshot-date
+  [response]
+  (-> response
+      ::sim-de-response/snapshot
+      ::sim-de-snapshot/date))
+
+(defn events-stub [] (sim-de-event/make-events :a 13 :b 14 :d 15))
+
+(def ^:private snapshot-stub
+  (sim-de-snapshot/build 2 2 2 {:foo :bar} [] (sim-de-event/make-events :a 30)))
+
+(def ^:private request-stub
+  (sim-de-request/build nil
+                        nil
+                        snapshot-stub
+                        (sim-de-ordering/sorter [(sim-de-ordering/compare-field
+                                                  ::sim-de-event/date)])))
+
 (deftest handler-test
-  (testing "No event execution is stopping the execution"
+  (testing
+    "When a request has raised a `stopping-cause`, it is passed to the response and the `snapshot` is not modified."
+    (is (= (sim-de-response/build [{:stopping-criteria :test-stopping}]
+                                  snapshot-stub)
+           (-> request-stub
+               (assoc ::sim-de-request/event-execution (constantly {}))
+               (sim-de-request/add-stopping-cause {:stopping-criteria
+                                                   :test-stopping})
+               sut/handler))))
+  (testing
+    "If no valid `event-execution` is detected, the `execution-not-found` `stopping-cause` is added, `bucket` is not changed, but iteration is incremented."
+    (is (= [:execution-not-found 30 3]
+           ((juxt first-stopping-definition-id snapshot-date snapshot-id)
+            (sut/handler request-stub)))))
+  (testing "For a valid request.\n"
+    (testing
+      "Empty `future-events` creates a new `snapshot-id`, doesn't change the snapshot date and creates an `execution-not-found` as it is `nil`."
+      (is (= [2 :execution-not-found 3]
+             ((juxt snapshot-date first-stopping-definition-id snapshot-id)
+              (-> request-stub
+                  (assoc-in [::sim-de-request/snapshot
+                             ::sim-de-snapshot/future-events]
+                            [])
+                  sut/handler)))))
+    (testing
+      "When valid, the first event in the future list is turned into a `past-event`, it creates no `stopping-cause`"
+      (is (= [nil (events-stub) (sim-de-event/make-event :a 30) {:foo3 :bar3}]
+             ((juxt first-stopping-definition-id
+                    future-events
+                    latest-past-event
+                    state)
+              (-> request-stub
+                  (assoc ::sim-de-request/event-execution
+                         (constantly (sim-de-event-return/build
+                                      {:foo3 :bar3}
+                                      (shuffle (events-stub)))))
+                  sut/handler)))))
+    (testing
+      "When an `handler` is throwing an exception, it creates a `failed-event-execution` `stopping-cause`, the `event-execution` is skipped, but a new `snapshot` is created, with its incremented iteration number and with bucket of failed event."
+      (is (= [:failed-event-execution 3 30 3]
+             ((juxt first-stopping-definition-id
+                    snapshot-id
+                    snapshot-date
+                    snapshot-iteration)
+              (-> request-stub
+                  (assoc ::sim-de-request/event-execution
+                         #(throw (ex-info "Arg" {})))
+                  sut/handler)))))
+    (testing
+      "Snapshot bucket is `100`, but an event happened at `13`, so in the past and causality rule is broken, the `stopping-cause`'s `stopping-criteria` is added. Note `future-events` and `state` are replaced with values returned from event execution."
+      (is (= [:causality-broken (events-stub) {:foo3 :bar3}]
+             ((juxt first-stopping-definition-id future-events state)
+              (-> request-stub
+                  (assoc-in [::sim-de-request/snapshot ::sim-de-snapshot/date]
+                            100)
+                  (assoc ::sim-de-request/event-execution
+                         (constantly (sim-de-event-return/build
+                                      {:foo3 :bar3}
+                                      (shuffle (events-stub)))))
+                  sut/handler)))))))
+
+(defn event-registry-stub
+  [added-future-events]
+  {:a (fn [_ state future-events]
+        (sim-de-event-return/build (assoc state :sc :sd)
+                                   (concat future-events
+                                           added-future-events)))})
+
+(defn registry-stub
+  [added-future-events]
+  {:event (event-registry-stub added-future-events)
+   :middleware {}
+   :stopping {}
+   :ordering {}})
+
+(defn initial-snapshot
+  [future-events]
+  (sim-de-snapshot/build 1 1 1 {:sa :sb} [] future-events))
+
+(deftest scheduler-loop-test
+  (testing "Nil values are ok, it implies no future-event is detected."
+    (is (= [:no-future-events]
+           (->> (sut/scheduler-loop nil nil sut/handler nil [])
+                ::sim-de-response/stopping-causes
+                (mapv (comp :id :stopping-definition :stopping-criteria))))))
+  (testing
+    "First event is properly executed, state and future events are up to date, iteration, date and id are increased, state updated, first event is gone in the past."
     (is (= (sim-de-response/build
-            [{:cause ::sim-de-registry/execution-not-found
-              :not-found-type nil}]
-            (sim-de-snapshot/build 3 3 2 {:foo :bar} [] []))
-           (sut/handler (sim-de-request/build
-                         nil
-                         nil
-                         (sim-de-snapshot/build 2 2 2 {:foo :bar} nil nil)
-                         nil
-                         [])))))
-  (testing "Stop in the request is passed to the response"
-    (is (= [{:cause ::test-stopping}]
-           (-> (sut/handler (sim-de-request/build nil
-                                                  (constantly {})
-                                                  nil
-                                                  nil
-                                                  [{:cause ::test-stopping}]))
-               ::sim-de-response/stop))))
-  (testing "Data added in event execution are in the response"
-    (is (= {:foo3 :bar3}
-           (-> (sut/handler (sim-de-request/build
-                             nil
-                             (constantly
-                              (sim-de-event-return/build {:foo3 :bar3} []))
-                             nil
-                             nil
-                             []))
-               (get-in [::sim-de-response/snapshot ::sim-de-snapshot/state])))))
-  (testing "An early event is first in the future list"
-    (is (= (sim-de-event/make-events :a 12 :b 13 :d 15)
-           (-> (sut/handler
-                (sim-de-request/build
-                 nil
-                 (constantly (sim-de-event-return/build
-                              {:foo3 :bar3}
-                              (sim-de-event/make-events :a 12 :d 15 :b 13)))
-                 (sim-de-snapshot/build 1 1 1 nil nil nil)
-                 (sim-de-ordering/sorter [(sim-de-ordering/compare-field
-                                           ::sim-de-event/date)])
-                 []))
-               (get-in [::sim-de-response/snapshot
-                        ::sim-de-snapshot/future-events])))))
+            []
+            (sim-de-snapshot/build
+             2
+             2
+             10
+             {:sa :sb
+              :sc :sd}
+             (sim-de-event/make-events :a 10)
+             (sim-de-event/make-events :b 12 :a 13 :b 14)))
+           (sut/scheduler-loop
+            (event-registry-stub (sim-de-event/make-events :a 13 :b 14))
+            (sim-de-ordering/sorter nil)
+            sut/handler
+            (initial-snapshot (sim-de-event/make-events :a 10 :b 12))
+            []))))
   (testing
-    "Handler raising an exception is skipped, next snapshot is returned, with failing event in the past"
-    (is
-     (= (sim-de-response/build [{:cause ::sut/failed-event-execution
-                                 :error nil}]
-                               (sim-de-snapshot/build
-                                2
-                                2
-                                12
-                                {:foo3 :bar3}
-                                (sim-de-event/make-events :a 10 :b 11 :aa 12)
-                                (sim-de-event/make-events :bb 14)))
-        (-> (sut/handler
-             (sim-de-request/build
-              nil
-              (fn [_ _ _] (throw (ex-info "Arg" {})))
-              (sim-de-snapshot/build 1
-                                     1
-                                     1
-                                     {:foo3 :bar3}
-                                     (sim-de-event/make-events :a 10 :b 11)
-                                     (sim-de-event/make-events :aa 12 :bb 14))
-              (sim-de-ordering/sorter [(sim-de-ordering/compare-field
-                                        ::sim-de-event/date)])
-              []))
-            (assoc-in [::sim-de-response/stop 0 :error] nil)))))
-  (testing "An event happened in the past"
-    (is
-     (=
-      [{:cause ::sim-de-response/causality-broken
-        :previous-date 10
-        :next-date 5}]
-      (->
-        (sut/handler
-         (sim-de-request/build
-          nil
-          (constantly (sim-de-event-return/build
-                       {:foo3 :bar3}
-                       (sim-de-event/make-events :a 5 :a 12 :d 15 :b 13)))
-          (sim-de-snapshot/build 1 1 10 nil nil (sim-de-event/make-events :a 5))
-          (sim-de-ordering/sorter [])
-          []))
-        (get ::sim-de-response/stop))))))
-
-(deftest iterate-test
-  (testing "Nil values are ok"
-    (is (= (sut/iterate nil nil nil nil)
-           (sim-de-response/build [{:cause ::sim-de-request/no-future-events}
-                                   {:cause ::sut/nil-handler}]
-                                  (sim-de-snapshot/build 1 1 nil nil [] [])))))
-  (testing "Nil handler is detected"
-    (is (= [{:cause ::sut/nil-handler
-             :current-event (sim-de-event/make-event :a 10)}]
-           (-> (sut/iterate nil
-                            nil
-                            nil
-                            (sim-de-snapshot/build
-                             1
-                             1
-                             1
-                             nil
-                             nil
-                             (sim-de-event/make-events :a 10 :b 12)))
-               (get-in [::sim-de-response/stop])))))
+    "The last `event` should be executed properly, it happens when `future-events` has only one event, and none is added by the `event-execution`."
+    (is (= (sim-de-response/build []
+                                  (sim-de-snapshot/build
+                                   2
+                                   2
+                                   10
+                                   {:sa :sb
+                                    :sc :sd}
+                                   (sim-de-event/make-events :a 10)
+                                   []))
+           (sut/scheduler-loop (event-registry-stub [])
+                               (sim-de-ordering/sorter nil)
+                               sut/handler
+                               (initial-snapshot (sim-de-event/make-events :a
+                                                                           10))
+                               []))))
   (testing
-    "First event is properly executed, state and future events are up to date"
-    (is
-     (= (sim-de-response/build []
-                               (sim-de-snapshot/build
-                                2
-                                2
-                                10
-                                {:sa :sb
-                                 :sc :sd}
-                                (sim-de-event/make-events :a 10)
-                                (sim-de-event/make-events :b 12 :a 13 :b 14)))
-        (sut/iterate
-         {:a (fn [_ state future-events]
-               (sim-de-event-return/build
-                (assoc state :sc :sd)
-                (concat future-events (sim-de-event/make-events :a 13 :b 14))))}
-         nil
-         sut/handler
-         (sim-de-snapshot/build 1
-                                1
-                                1
-                                {:sa :sb}
-                                []
-                                (sim-de-event/make-events :a 10 :b 12)))))
-    (is
-     (= (sim-de-response/build []
-                               (sim-de-snapshot/build
-                                2
-                                2
-                                10
-                                {:a :b
-                                 :c :d}
-                                (sim-de-event/make-events :a 10)
-                                []))
-        (sut/iterate
-         {:a (fn [_ state future-events]
-               (sim-de-event-return/build (assoc state :c :d) future-events))}
-         nil
-         sut/handler
-         (sim-de-snapshot/build 1
-                                1
-                                1
-                                {:a :b}
-                                []
-                                (sim-de-event/make-events :a 10))))))
-  (testing "End to end state and future events path"
-    (is
-     (= {::sim-de-snapshot/future-events (sim-de-event/make-events :a 13 :b 14)
-         ::sim-de-snapshot/state {:a :b}}
-        (-> (sut/iterate {:a (fn [_ _ _]
-                               (sim-de-event-return/build
-                                {:a :b}
-                                (sim-de-event/make-events :a 13 :b 14)))}
-                         nil
-                         sut/handler
-                         (sim-de-snapshot/build
-                          1
-                          1
-                          1
-                          {}
-                          []
-                          (sim-de-event/make-events :a 10 :b 12)))
-            ::sim-de-response/snapshot
-            (select-keys [::sim-de-snapshot/future-events
-                          ::sim-de-snapshot/state]))))))
-
-(deftest scheduler*-test
-  (testing
-    "No data is ok, even if scheduler prevents this case it is helping robustness"
-    (is (= (sim-de-response/build [{:cause ::sim-de-request/no-future-events}]
-                                  (sim-de-snapshot/build 1 1 nil nil [] []))
-           (sut/scheduler* nil [] nil nil 100)))))
+    "When `future-events` is empty`, the `no-future-events` `stopping-cause` is added, the same snapshot is returned, without changing anything."
+    (is (= [:no-future-events 1 1]
+           ((juxt first-stopping-definition-id snapshot-id snapshot-date)
+            (sut/scheduler-loop (event-registry-stub [])
+                                (sim-de-ordering/sorter nil)
+                                sut/handler
+                                (initial-snapshot [])
+                                []))))))
 
 (deftest scheduler-test
-  (testing "A single execution is ok"
-    (is
-     (= (sim-de-response/build [{:cause ::sim-de-request/no-future-events}]
-                               (sim-de-snapshot/build
-                                3
-                                3
-                                10
-                                {:foo 1
-                                 :evt :a}
-                                (sim-de-event/make-events :a 10)
-                                []))
-        (sut/scheduler (sim-de-model/build
-                        {:a (fn [_ state future-events]
-                              (sim-de-event-return/build (assoc state :evt :a)
-                                                         future-events))}
-                        []
-                        [(sim-de-ordering/compare-field ::sim-de-event/date)]
-                        (sim-de-snapshot/build 1
-                                               1
-                                               1
-                                               {:foo 1}
-                                               nil
-                                               (sim-de-event/make-events :a 10))
-                        10)))))
-  (testing "Looping of 3 iterations is ok"
-    (is
-     (=
-      (sim-de-response/build [{:cause ::sim-de-request/no-future-events}]
-                             (sim-de-snapshot/build
-                              5
-                              5
-                              12
-                              {:foo 1
-                               :evt-a 1
-                               :evt-b 1
-                               :evt-c 1}
-                              (sim-de-event/make-events :a 10 :c 10 :b 12)
-                              []))
-      (sut/scheduler
-       (sim-de-model/build
-        {:a (fn [_ state future-events]
-              (sim-de-event-return/build
-               (update state :evt-a (fnil inc 0))
-               (concat future-events (sim-de-event/make-events :b 12 :c 10))))
-         :b (fn [_ state future-events]
-              (sim-de-event-return/build (update state :evt-b (fnil inc 0))
-                                         future-events))
-         :c (fn [_ state future-events]
-              (sim-de-event-return/build (update state :evt-c (fnil inc 0))
-                                         future-events))}
-        []
-        [(sim-de-ordering/compare-field ::sim-de-event/date)
-         (sim-de-ordering/compare-types [:a :b :c])]
-        (sim-de-snapshot/build 1
-                               1
-                               1
-                               {:foo 1}
-                               nil
-                               (sim-de-event/make-events :a 10))
-        10))))))
+  (testing
+    "Executing no event is ok, it is returning the same snapshot and stops with `no-future-events`."
+    (is (= [1 1 :no-future-events {:sa :sb}]
+           ((juxt snapshot-id snapshot-date first-stopping-definition-id state)
+            (sut/scheduler (sim-de-model/build {:initial-event-type :IN}
+                                               (sim-de-registry/build))
+                           []
+                           []
+                           (initial-snapshot []))))))
+  (testing
+    "Executing one only event is ok, it is creating only one `snapshot`, is at the `bucket` of the executed event and has updated the `state`."
+    (is (= [2
+            4
+            :no-future-events
+            {:sa :sb
+             :sc :sd}]
+           ((juxt snapshot-id snapshot-date first-stopping-definition-id state)
+            (sut/scheduler
+             (sim-de-model/build {:initial-event-type :IN} (registry-stub []))
+             []
+             []
+             (initial-snapshot (sim-de-event/make-events :a 4)))))))
+  (testing "Executing 3 events is ok, it is creating 3 snapshots."
+    (is (= [4
+            50
+            :no-future-events
+            {:sa :sb
+             :sc :sd}]
+           ((juxt snapshot-id snapshot-date first-stopping-definition-id state)
+            (sut/scheduler (sim-de-model/build {:initial-event-type :IN}
+                                               (registry-stub []))
+                           []
+                           []
+                           (initial-snapshot
+                            (sim-de-event/make-events :a 40 :a 40 :a 50))))))))

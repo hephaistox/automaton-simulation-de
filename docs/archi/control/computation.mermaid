@@ -1,0 +1,26 @@
+erDiagram
+Computation {
+}
+
+Computation-Response {
+value-object yes
+}
+
+Model {
+	bounded-context SimulationEngine
+	}
+stopping-registry {
+	bounded-context SimulationEngine
+}
+
+stopping-criteria {
+	bounded-context SimulationEngine
+}
+
+
+	stopping-registry ||--o{ Computation : "enriches"
+	stopping-criteria }o--|| Computation : "uses"
+	Computation ||--|o Computation-Response: "returns"
+	Model ||--o{ Computation   : "uses"
+	Computation }|--o{ Computation-Registry: "defined"
+	Computation |o--|| State: "contained"
