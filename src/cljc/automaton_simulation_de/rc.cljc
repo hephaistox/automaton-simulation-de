@@ -4,6 +4,9 @@
   Resource definition:
   * A limited quantity of items that are used (e.g. seized and disposed) by entities as they proceed through the system. A resource has a capacity that governs the total quantity of items that may be available. All the items in the resource are homogeneous, meaning that they are indistinguishable. If an entity attempts to seize a resource that does not have any units available it must wait in a queue. It is often representing real world items that availability is limited (e.g. machine, wrench).
 
+  Consumer definition:
+  * A consumer is responsible for seizing and disposing the resource.
+
   Note:
    * All namespaced keywords of the rc bounded context are from this namespace, so rc users need only to refer this one."
   (:require
@@ -102,21 +105,23 @@
 
 (defn wrap-model
   "Wraps a model to add necessary behavior to model a resource/consumer.
+
+  Resource/Consumer modeling is a way to model state and events for simulation, by using concepts of resource being used by consumer
+
   The `resources` is a map defining the resource available:
       * `policy` In a queue, the policy selects the next consumer that will be unblocked. (Each queue has its own policy)
       * `renewable?` When disposed, a renewable resource model is available again. Typically the toolings like wrenches, hammers, machines are most often renewable resources."
-  ([model resources unblocking-policy-registry preemption-policy-registry]
-   (cond-> model
-     (seq resources) (update-in [::sim-de-model/initial-snapshot
-                                 ::sim-de-snapshot/state]
-                                (fn [state]
-                                  (sim-de-rc-state/define-resources
-                                   state
-                                   resources
-                                   unblocking-policy-registry
-                                   preemption-policy-registry)))))
-  ([model resources]
-   (wrap-model model
-               resources
-               (unblocking-policy-registry)
-               (preemption-policy-registry))))
+  [model
+   {:keys [rc]
+    :as _model-data}
+   unblocking-policy-registry
+   preemption-policy-registry]
+  (cond-> model
+    (seq rc) (update-in [::sim-de-model/initial-snapshot
+                         ::sim-de-snapshot/state]
+                        (fn [state]
+                          (sim-de-rc-state/define-resources
+                           state
+                           rc
+                           unblocking-policy-registry
+                           preemption-policy-registry)))))

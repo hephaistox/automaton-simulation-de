@@ -7,9 +7,9 @@
 
 (deftest schema-test
   (testing "Test schema of event"
-    (is (nil? (core-schema/validate-humanize (sut/schema)))))
+    (is (nil? (core-schema/validate-humanize sut/schema))))
   (testing "Test valid events"
-    (is (nil? (core-schema/validate-data-humanize (sut/schema)
+    (is (nil? (core-schema/validate-data-humanize sut/schema
                                                   (sut/make-event :a 12))))))
 
 (deftest postpone-events-test

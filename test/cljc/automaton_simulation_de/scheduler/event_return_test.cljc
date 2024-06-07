@@ -7,4 +7,4 @@
 
 (deftest schema-test
   (testing "event return has a valid schema"
-    (is (nil? (core-schema/validate-humanize (sut/schema))))))
+    (is (nil? (core-schema/validate-humanize sut/schema)))))

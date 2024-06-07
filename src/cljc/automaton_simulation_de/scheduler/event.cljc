@@ -17,9 +17,8 @@
   * `type` a the event type as found in `evt-type-priority`.
   * `date` as a date.")
 
-(defn schema
+(def schema
   "An event is a tuple which first value is a keyword for the event type, the second is a date."
-  []
   [:map {:closed false}
    [::date :any]
    [::type :keyword]])

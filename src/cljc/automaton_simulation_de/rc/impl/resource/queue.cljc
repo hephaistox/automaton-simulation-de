@@ -7,7 +7,7 @@
   "Schema of a `queue`.
   A queue should be a vector and not a general collection to preserve order."
   []
-  [:vector (sim-de-event/schema)])
+  [:vector sim-de-event/schema])
 
 (defn queue-event
   "Returns the `resource` with `sim-de-rc/queue` updated with a sequence containing maps:

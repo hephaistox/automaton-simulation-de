@@ -3,19 +3,10 @@
   "Simulation domain, that can be tested from console
    Used to help during development of simulation de concepts"
   (:require
-   [automaton-core.utils.map                             :as utils-map]
-   [automaton-simulation-de.core                         :as simulation-core]
-   [automaton-simulation-de.middleware.schema-validation
-    :as sim-de-schema-validation]
-   [automaton-simulation-de.middleware.state-rendering   :as
-                                                         sim-de-state-rendering]
-   [automaton-simulation-de.ordering                     :as
-                                                         sim-de-event-ordering]
-   [automaton-simulation-de.scheduler.event              :as sim-de-event]
-   [automaton-simulation-de.scheduler.event-return       :as
-                                                         sim-de-event-return]
-   [automaton-simulation-de.scheduler.snapshot           :as sim-de-snapshot]
-   [clojure.string                                       :as str]))
+   [automaton-simulation-de.core                   :as simulation-core]
+   [automaton-simulation-de.scheduler.event        :as sim-de-event]
+   [automaton-simulation-de.scheduler.event-return :as sim-de-event-return]
+   [clojure.string                                 :as str]))
 
 ;; Problem data
 (def routing
@@ -101,7 +92,6 @@
   [_ state future-events]
   (sim-de-event-return/build state future-events))
 
-;; Middleware
 (defn state-rendering
   [state]
   (apply println
@@ -115,27 +105,40 @@
                     "_")
                 ")"))))
 
-(defn toy-example-schedule
+(defn registries
   []
-  (-> (simulation-core/build-model
-       {:IN evt-init
-        :MA machine-arrive
-        :MP machine-process
-        :MT machine-terminate
-        :PT part-terminate}
-       [sim-de-schema-validation/request-validation
-        (partial sim-de-state-rendering/state-rendering
-                 (comp state-rendering utils-map/remove-nil-submap-vals))
-        sim-de-schema-validation/response-validation]
-       [(sim-de-event-ordering/compare-field ::sim-de-event/date)
-        (sim-de-event-ordering/compare-types [:IN :MA :MP :MT :PT])
-        (sim-de-event-ordering/compare-field ::machine)
-        (sim-de-event-ordering/compare-field ::product)]
-       (sim-de-snapshot/build 1 1 0 {} [] (sim-de-event/make-events :IN 0))
-       100)
-      simulation-core/scheduler))
+  (-> (simulation-core/registries)
+      (update :event
+              merge
+              {:IN evt-init
+               :MA machine-arrive
+               :MP machine-process
+               :MT machine-terminate
+               :PT part-terminate})))
+
+(def model-data
+  {:initial-event-type :IN
+   :ordering [[:field ::sim-de-event/date]
+              [:type [:IN :MA :MP :MT :PT]]
+              [:field ::machine]
+              [:field ::product]]
+   :stopping-criterias [[:iteration-nth {:n 100}]]})
 
 (comment
-  (tap> [:toy-example-end (toy-example-schedule)])
+  (def model (simulation-core/build-model model-data (registries)))
+  (def full-run
+    (simulation-core/scheduler model [[:state-rendering state-rendering]] []))
+  (def s1
+    (simulation-core/scheduler model
+                               []
+                               [[:iteration-nth {:n 30}]]))
+  (def s2
+    (->> s1
+         simulation-core/extract-snapshot
+         (simulation-core/scheduler
+          model
+          [[:iteration-nth {:n 30
+                            :model-end? true}]]
+          [:response-validation :supp-middlewares-insert :request-validation])))
   ;
 )
