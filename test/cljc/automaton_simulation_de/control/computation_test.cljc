@@ -7,21 +7,21 @@
    [automaton-simulation-de.control.computation          :as sut]
    [automaton-simulation-de.control.computation.response :as
                                                          sim-de-comp-response]
-   [automaton-simulation-de.demo.control                 :as sim-demo-control]))
+   [automaton-simulation-de.demo.control                 :as sim-demo-control]
+   [automaton-simulation-de.simulation-engine            :as-alias sim-engine]))
 
 (defn- it-nb
   [resp]
-  (get-in resp
-          [:automaton-simulation-de.control/response
-           :automaton-simulation-de.response/snapshot
-           :automaton-simulation-de.scheduler.snapshot/iteration]))
+  (get-in
+   resp
+   [::sim-de-control/response ::sim-engine/snapshot ::sim-engine/iteration]))
 
 (defn- state-stp-context
   [resp]
   (-> resp
-      (get-in [:automaton-simulation-de.control/response
-               :automaton-simulation-de.response/snapshot
-               :automaton-simulation-de.scheduler.snapshot/state
+      (get-in [::sim-de-control/response
+               ::sim-engine/snapshot
+               ::sim-engine/state
                :m1
                :process])))
 
@@ -41,7 +41,8 @@
         model-with-end (create-direct-computation (model-early-stop))]
     (testing "Regular use-cases"
       (let [resp (sut/scheduler-response regular-model
-                                         [[:iteration-nth {:n 10}]]
+                                         [[::sim-engine/iteration-nth
+                                           {::sim-engine/n 10}]]
                                          0)]
         (is (nil? (core-schema/validate-data-humanize
                    sim-de-comp-response/schema
@@ -49,18 +50,20 @@
         (is (= 10
                (-> resp
                    it-nb)))
-        (is (= :success (:automaton-simulation-de.control/status resp))))
+        (is (= :success (::sim-de-control/status resp))))
       (let [resp (sut/scheduler-response regular-model
-                                         [[:iteration-nth {:n 10}]])]
+                                         [[::sim-engine/iteration-nth
+                                           {::sim-engine/n 10}]])]
         (is (nil? (core-schema/validate-data-humanize
                    sim-de-comp-response/schema
                    resp)))
         (is (= 10
                (-> resp
                    it-nb)))
-        (is (= :success (:automaton-simulation-de.control/status resp))))
+        (is (= :success (::sim-de-control/status resp))))
       (let [resp (sut/scheduler-response infinite-model
-                                         [[:iteration-nth {:n 10}]]
+                                         [[::sim-engine/iteration-nth
+                                           {::sim-engine/n 10}]]
                                          0)]
         (is (nil? (core-schema/validate-data-humanize
                    sim-de-comp-response/schema
@@ -68,39 +71,42 @@
         (is (= 10
                (-> resp
                    it-nb)))
-        (is (= :success (:automaton-simulation-de.control/status resp))))
+        (is (= :success (::sim-de-control/status resp))))
       (let [resp (sut/scheduler-response model-with-end
-                                         [[:iteration-nth {:n 15}]]
+                                         [[::sim-engine/iteration-nth
+                                           {::sim-engine/n 15}]]
                                          0)]
         (is (= 15
                (-> resp
                    it-nb)))
-        (is (= :success (:automaton-simulation-de.control/status resp))))
+        (is (= :success (::sim-de-control/status resp))))
       (let [resp (sut/scheduler-response regular-model
-                                         [[:iteration-nth {:n 50}]]
+                                         [[::sim-engine/iteration-nth
+                                           {::sim-engine/n 50}]]
                                          0)]
         (is (= 32
                (-> resp
                    it-nb)))
         (is (= :no-next
                (-> resp
-                   :automaton-simulation-de.control/status))))
+                   ::sim-de-control/status))))
       (let [resp (sut/scheduler-response model-with-end
-                                         [[:iteration-nth {:n 50}]]
+                                         [[::sim-engine/iteration-nth
+                                           {::sim-engine/n 50}]]
                                          0)]
         (is (= 20
                (-> resp
                    it-nb)))
         (is (= :no-next
                (-> resp
-                   :automaton-simulation-de.control/status))))
+                   ::sim-de-control/status))))
       (let [resp (sut/scheduler-response infinite-model [] 0)]
         (is (= 1000
                (-> resp
                    it-nb)))
         (is (= :timeout
                (-> resp
-                   :automaton-simulation-de.control/status))))
+                   ::sim-de-control/status))))
       (let [resp (sut/scheduler-response regular-model [] 0)]
         (is (nil? (core-schema/validate-data-humanize
                    sim-de-comp-response/schema
@@ -110,7 +116,7 @@
                    it-nb)))
         (is (= :success
                (-> resp
-                   :automaton-simulation-de.control/status))))
+                   ::sim-de-control/status))))
       (let [resp (sut/scheduler-response regular-model)]
         (is (nil? (core-schema/validate-data-humanize
                    sim-de-comp-response/schema
@@ -120,7 +126,7 @@
                    it-nb)))
         (is (= :success
                (-> resp
-                   :automaton-simulation-de.control/status))))
+                   ::sim-de-control/status))))
       (let [resp (sut/scheduler-response regular-model
                                          [[:state-contains {:state [:m1
                                                                     :process]}]]
@@ -130,7 +136,7 @@
                    it-nb)))
         (is (= :success
                (-> resp
-                   :automaton-simulation-de.control/status)))
+                   ::sim-de-control/status)))
         (is (= 6
                (-> (sut/scheduler-response regular-model
                                            [[:state-contains {:state
@@ -165,5 +171,5 @@
         (is
          (let [resp (sut/scheduler-response regular-model mdw 20)]
            (and (= 32 (it-nb resp))
-                (= :no-next (:automaton-simulation-de.control/status resp))))
+                (= :no-next (::sim-de-control/status resp))))
          "Going outside of scope should return last possible iteration in finite simulation and fail status")))))

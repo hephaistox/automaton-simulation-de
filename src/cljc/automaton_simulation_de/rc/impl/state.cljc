@@ -1,7 +1,8 @@
 (ns automaton-simulation-de.rc.impl.state
-  "Store and update resource consumer informations in the `:automaton-simulation-de.rc/resource` key of the state.
+  "Store and update resource consumer informations in the `::sim-rc/resource` key of the state.
   Assuming state is associative."
   (:require
+   [automaton-simulation-de.rc               :as-alias sim-rc]
    [automaton-simulation-de.rc.impl.resource :as sim-de-rc-resource]))
 
 (defn define-resources
@@ -11,7 +12,7 @@
    unblocking-policy-registry
    preemption-policy-registry]
   (update state
-          :automaton-simulation-de.rc/resource
+          ::sim-rc/resource
           (fn [resources]
             (merge resources
                    (into {}
@@ -21,7 +22,7 @@
                                          resource
                                          unblocking-policy-registry
                                          preemption-policy-registry)
-                                        :automaton-simulation-de.rc/name
+                                        ::sim-rc/name
                                         resource-name)])
                               defined-resources))))))
 
@@ -29,13 +30,13 @@
   "Returns the resource called `resource-name`, nil if does not exist.
   The `resource-name` should be called as described in the `resources` map of the middleware"
   [state resource-name]
-  (get-in state [:automaton-simulation-de.rc/resource resource-name]))
+  (get-in state [::sim-rc/resource resource-name]))
 
 (defn- update-resource
   [state resource-name resource]
   (cond-> state
-    (some? resource-name)
-    (assoc-in [:automaton-simulation-de.rc/resource resource-name] resource)))
+    (some? resource-name) (assoc-in [::sim-rc/resource resource-name]
+                           resource)))
 
 (defn update-resource-capacity
   "Returns a pair of:

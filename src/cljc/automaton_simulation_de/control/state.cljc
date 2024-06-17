@@ -3,8 +3,9 @@
    For diagram see ![computation](archi/control/state.png)"
   (:refer-clojure :exclude [get set])
   (:require
-   [automaton-core.adapters.schema   :as core-schema]
-   [automaton-simulation-de.response :as sim-de-response]))
+   [automaton-core.adapters.schema                     :as core-schema]
+   [automaton-simulation-de.control                    :as-alias sim-de-control]
+   [automaton-simulation-de.simulation-engine.response :as sim-de-response]))
 
 (defn rendering-state-schema
   "Schema of rendering state, `:computation` should be an object implementing computation defprotocol"

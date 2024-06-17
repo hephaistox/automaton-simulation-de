@@ -39,9 +39,9 @@ So let's zoom in on the snapshot iteration-number to get a better grasp of how c
 (defn- snapshot-it-nb
   [control-response]
   (get-in control-response
-          [:automaton-simulation-de.control/response
-           :automaton-simulation-de.response/snapshot
-           :automaton-simulation-de.scheduler.snapshot/iteration]))
+          [::sim-de-control/response
+           ::sim-engine/snapshot
+           ::sim-engine/iteration]))
 
 (snapshot-it-nb (sim-de-control/move-x state 1))
 => 2
@@ -145,13 +145,13 @@ true
 ```
 
 Another useful function is fast-forward!
-Which will move to simulation `:model-end?` if it's not defined in a model it will move until any stopping-criteria is met
+Which will move to simulation `::sim-engine/model-end?` if it's not defined in a model it will move until any stopping-criteria is met
 
 ```clojure
 (first (get-in  [:automaton-simulation-de.control/response
            :automaton-simulation-de.response/stopping-causes]))
 =>
-{:stopping-criteria {:stopping-definition {... :id :no-future-events}}}
+{:stopping-criteria {:stopping-definition {... :id ::sim-engine/no-future-events}}}
 ```
 
 To know what `stopping-criteria` are defined in your model you can run:

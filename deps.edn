@@ -1,8 +1,8 @@
 {:aliases
  {:bb-deps {:extra-deps #:org.clojars.hephaistox{automaton-build
-                                                 #:mvn{:version "1.4.5-la"}}}
+                                                 #:mvn{:version "1.4.5"}}}
   :build {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version
-                                                                     "1.4.5-la"}}
+                                                                     "1.4.5"}}
           :ns-default build}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
                            thheller/shadow-cljs #:mvn{:version "2.28.2"}}
@@ -23,7 +23,7 @@
                  "env/development/src/clj/"
                  "env/development/src/cljc/"]
    :jvm-opts ["-Dheph-conf=env/development/config.edn,env/common_config.edn"]
-   :main-opts ["-m" "automaton-core.repl.entry-point"]}
+   :main-opts ["-m" "automaton-simulation-de.local-repl"]}
   :env-development-test
   {:jvm-opts
    ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/log4j2-factory"
@@ -36,5 +36,5 @@
                "test/clj"
                "-d"
                "test/cljc"]}}
- :deps {org.clojars.hephaistox/automaton-core #:mvn{:version "1.2.4-la"}}
+ :deps {org.clojars.hephaistox/automaton-core #:mvn{:version "1.2.4"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}
