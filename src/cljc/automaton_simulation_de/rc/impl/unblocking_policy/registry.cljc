@@ -1,6 +1,7 @@
 (ns automaton-simulation-de.rc.impl.unblocking-policy.registry
   "Registry for `unblocking-policy`."
   (:require
+   [automaton-simulation-de.rc                             :as-alias sim-rc]
    [automaton-simulation-de.rc.impl.unblocking-policy.base
     :as sim-de-rc-unblocking-policy-base]
    [automaton-simulation-de.rc.unblocking-policy

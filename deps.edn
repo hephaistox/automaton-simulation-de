@@ -23,7 +23,7 @@
                  "env/development/src/clj/"
                  "env/development/src/cljc/"]
    :jvm-opts ["-Dheph-conf=env/development/config.edn,env/common_config.edn"]
-   :main-opts ["-m" "automaton-core.repl.entry-point"]}
+   :main-opts ["-m" "automaton-simulation-de.local-repl"]}
   :env-development-test
   {:jvm-opts
    ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/log4j2-factory"

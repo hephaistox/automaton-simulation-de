@@ -1,6 +1,7 @@
 (ns automaton-simulation-de.rc.impl.preemption-policy.registry
   "Registry for `preemption-policy`."
   (:require
+   [automaton-simulation-de.rc                             :as-alias sim-rc]
    [automaton-simulation-de.rc.impl.preemption-policy.base
     :as sim-de-rc-preemption-policy-base]
    [automaton-simulation-de.rc.preemption-policy
@@ -14,5 +15,5 @@
 (defn registry
   "The base policies for `preemption-policy`."
   []
-  #:automaton-simulation-de-rc{:automaton-simulation-de.rc/no-preemption
+  #:automaton-simulation-de.rc{::sim-rc/no-preemption
                                sim-de-rc-preemption-policy-base/no-preemption})

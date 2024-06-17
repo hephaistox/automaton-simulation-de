@@ -8,15 +8,15 @@
 
     For diagram see ![computation](archi/control/computation_response.png)"
   (:require
-   [automaton-simulation-de.response :as sim-de-response]))
+   [automaton-simulation-de.control                    :as-alias sim-de-control]
+   [automaton-simulation-de.simulation-engine.response :as sim-de-response]))
 
 (def schema
   [:map {:closed true}
-   [:automaton-simulation-de.control/status
-    [:enum :success :no-next :timeout :internal-error]]
-   [:automaton-simulation-de.control/response sim-de-response/schema]])
+   [::sim-de-control/status [:enum :success :no-next :timeout :internal-error]]
+   [::sim-de-control/response sim-de-response/schema]])
 
 (defn build
   [status response]
-  {:automaton-simulation-de.control/status status
-   :automaton-simulation-de.control/response response})
+  {::sim-de-control/status status
+   ::sim-de-control/response response})

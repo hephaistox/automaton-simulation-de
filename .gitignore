@@ -30,7 +30,7 @@ docs/codox
 # Kondo
 # The .clj-kondo/config.edn is where we setup kondo.
 # It is part of CICD, It is important to keep that file.
-**/.clj-kondo/.cache
+**/.clj-kondo/
 
 # Private credentials
 **/.clever.json

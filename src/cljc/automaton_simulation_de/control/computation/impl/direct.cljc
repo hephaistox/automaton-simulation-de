@@ -5,23 +5,28 @@
    [automaton-simulation-de.control.computation          :as sim-de-computation]
    [automaton-simulation-de.control.computation.response :as
                                                          sim-de-comp-response]
-   [automaton-simulation-de.core                         :as simulation-core]))
+   [automaton-simulation-de.simulation-engine            :as sim-engine]))
 
 (defn- endless-sim?
   [stopping-causes]
-  (some #(= :endless-sim (get-in % [:stopping-criteria :params :reason]))
-        stopping-causes))
+  (some
+   #(= :endless-sim
+       (get-in % [::sim-engine/stopping-criteria ::sim-engine/params :reason]))
+   stopping-causes))
 
 (defn- stopping-criteria-match-cause?
   [stopping-criterias stop-causes]
   (if (empty? stopping-criterias)
     true
     (some (fn [stop-cause]
-            (some #(and (= (get-in stop-cause [:stopping-criteria :params])
+            (some #(and (= (get-in stop-cause
+                                   [::sim-engine/stopping-criteria
+                                    ::sim-engine/params])
                            (second %))
-                        (= (get-in
-                            stop-cause
-                            [:stopping-criteria :stopping-definition :id])
+                        (= (get-in stop-cause
+                                   [::sim-engine/stopping-criteria
+                                    ::sim-engine/stopping-definition
+                                    ::sim-engine/id])
                            (first %)))
                   stopping-criterias))
           stop-causes)))
@@ -31,25 +36,27 @@
     (scheduler-response [_ stopping-criterias it]
       (let [it (or it 1)
             endless-sim-catch (+ it max-it)
-            endless-stopping-criteria [:iteration-nth {:n endless-sim-catch
-                                                       :reason :endless-sim}]
+            endless-stopping-criteria [::sim-engine/iteration-nth
+                                       {::sim-engine/n endless-sim-catch
+                                        :reason :endless-sim}]
             it-snapshot
             (if (<= it 1)
-              (:automaton-simulation-de.impl.model/initial-snapshot model)
+              (::sim-engine/initial-snapshot model)
               (-> model
-                  (simulation-core/scheduler []
-                                             [[:iteration-nth {:n (dec it)}]])
-                  :automaton-simulation-de.response/snapshot))]
+                  (sim-engine/scheduler
+                   []
+                   [[::sim-engine/iteration-nth
+                     #:automaton-simulation-de.simulation-engine{:n (dec it)}]])
+                  ::sim-engine/snapshot))]
         (loop [snapshot it-snapshot
                endless-catch-internal-counter 0]
-          (let [{:automaton-simulation-de.response/keys [snapshot
-                                                         stopping-causes]
+          (let [{::sim-engine/keys [snapshot stopping-causes]
                  :as resp}
-                (simulation-core/scheduler model
-                                           []
-                                           (conj stopping-criterias
-                                                 endless-stopping-criteria)
-                                           snapshot)]
+                (sim-engine/scheduler model
+                                      []
+                                      (conj stopping-criterias
+                                            endless-stopping-criteria)
+                                      snapshot)]
             (cond
               (endless-sim? stopping-causes)
               (sim-de-comp-response/build :timeout resp)
@@ -65,8 +72,7 @@
       (sim-de-computation/scheduler-response this [] 1))
     (scheduler-response [this stopping-criterias]
       (sim-de-computation/scheduler-response this stopping-criterias 1))
-    (stopping-criterias [_]
-      (:automaton-simulation-de.impl.model/stopping-criterias model)))
+    (stopping-criterias [_] (::sim-engine/stopping-criterias model)))
 
 (defn make-direct-computation
   "Params:

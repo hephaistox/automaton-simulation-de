@@ -10,6 +10,7 @@
   * `renewable?` (default true) when true, the disposing is not giving back the values.
   * `unblocking-policy` (default ::simde-rc/FIFO) refers to an entity from the `automaton-simulation-de.rc.policies` registry, that registry will allow to pick one element in a queue."
   (:require
+   [automaton-simulation-de.rc                                :as-alias sim-rc]
    [automaton-simulation-de.rc.impl.preemption-policy.factory
     :as sim-de-rc-preemption-policy-factory]
    [automaton-simulation-de.rc.impl.resource.consumption
@@ -21,46 +22,45 @@
 
 (defn defaulting-values
   "Returns a resource with default values added."
-  [{:automaton-simulation-de.rc/keys [capacity
-                                      currently-consuming
-                                      preemption-policy
-                                      queue
-                                      renewable?
-                                      unblocking-policy]
+  [{::sim-rc/keys [capacity
+                   currently-consuming
+                   preemption-policy
+                   queue
+                   renewable?
+                   unblocking-policy]
     :as resource
     :or {capacity 1
          currently-consuming {}
-         preemption-policy :automaton-simulation-de.rc/no-preemption
+         preemption-policy ::sim-rc/no-preemption
          queue []
          renewable? true
-         unblocking-policy :automaton-simulation-de.rc/FIFO}}
+         unblocking-policy ::sim-rc/FIFO}}
    unblocking-policy-registry
    preemption-policy-registry]
   (assoc resource
-         :automaton-simulation-de.rc/capacity capacity
-         :automaton-simulation-de.rc/currently-consuming currently-consuming
-         :automaton-simulation-de.rc/preemption-policy preemption-policy
-         :automaton-simulation-de.rc/queue queue
-         :automaton-simulation-de.rc/renewable? renewable?
-         :automaton-simulation-de.rc/unblocking-policy unblocking-policy
-         :automaton-simulation-de.rc/cache
-         {:automaton-simulation-de.rc/unblocking-policy-fn
-          (sim-de-rc-unblocking-policy-factory/factory
-           unblocking-policy-registry
-           unblocking-policy)
-          :automaton-simulation-de.rc/preemption-policy-fn
-          (sim-de-rc-preemption-policy-factory/factory
-           preemption-policy-registry
-           preemption-policy)}))
+         ::sim-rc/capacity capacity
+         ::sim-rc/currently-consuming currently-consuming
+         ::sim-rc/preemption-policy preemption-policy
+         ::sim-rc/queue queue
+         ::sim-rc/renewable? renewable?
+         ::sim-rc/unblocking-policy unblocking-policy
+         ::sim-rc/cache {::sim-rc/unblocking-policy-fn
+                         (sim-de-rc-unblocking-policy-factory/factory
+                          unblocking-policy-registry
+                          unblocking-policy)
+                         ::sim-rc/preemption-policy-fn
+                         (sim-de-rc-preemption-policy-factory/factory
+                          preemption-policy-registry
+                          preemption-policy)}))
 
 (defn nb-consumed-resources
   "Returns the number of consumed resources."
-  [{:keys [:automaton-simulation-de.rc/currently-consuming]
+  [{:keys [::sim-rc/currently-consuming]
     :as _resource}]
   (if (map? currently-consuming)
     (->> currently-consuming
          vals
-         (map (fn [{:automaton-simulation-de.rc/keys [consumed-quantity]
+         (map (fn [{::sim-rc/keys [consumed-quantity]
                     :or {consumed-quantity 1}}]
                 consumed-quantity))
          (apply + 0))
@@ -68,7 +68,7 @@
 
 (defn nb-available-resources
   "Returns the number of available resources based on the defined `capacity,` and the `currently-consuming` resources (i.e. sum of their )."
-  [{:automaton-simulation-de.rc/keys [capacity]
+  [{::sim-rc/keys [capacity]
     :or {capacity 1}
     :as resource}]
   (max 0 (- (or capacity 0) (nb-consumed-resources resource))))
@@ -102,13 +102,12 @@
 
   If the new capacity is lower than the number of element consumed (i.e. in `currently-consuming`), then the `preemption-policy` choose one event to stop:
   * `::no-premption` is the only implemented, it doesn't do anything and let the currently executing event finish."
-  [{:automaton-simulation-de.rc/keys [cache capacity]
+  [{::sim-rc/keys [cache capacity]
     :or {capacity 1}
     :as resource}
    new-capacity]
-  (let [{:automaton-simulation-de.rc/keys [preemption-policy-fn]} cache
-        resource
-        (assoc resource :automaton-simulation-de.rc/capacity new-capacity)]
+  (let [{::sim-rc/keys [preemption-policy-fn]} cache
+        resource (assoc resource ::sim-rc/capacity new-capacity)]
     (if (< new-capacity capacity)
       (preemption-policy-fn resource)
       ;; Capacity increase

@@ -1,18 +1,18 @@
 (ns automaton-simulation-de.rc.impl.resource.queue
   "The queue of a resource is containing all event execution which are blocked while waiting for a resource to be available."
   (:require
-   [automaton-simulation-de.scheduler.event :as sim-de-event]))
+   [automaton-simulation-de.rc                      :as-alias sim-rc]
+   [automaton-simulation-de.simulation-engine.event :as sim-de-event]))
 
-(defn schema
+(def schema
   "Schema of a `queue`.
   A queue should be a vector and not a general collection to preserve order."
-  []
   [:vector sim-de-event/schema])
 
 (defn queue-event
   "Returns the `resource` with `sim-de-rc/queue` updated with a sequence containing maps:
-  * `::sim-de-rc/consumed-quantity` is the `consumed-quantity`.
-  * `::sim-de-rc/seizing-event` is the `event` .
+  * `::sim-rc/consumed-quantity` is the `consumed-quantity`.
+  * `::sim-rc/seizing-event` is the `event` .
 
   `consumed-quantity` should be a strictly positive integer, otherwise queueuing is ignored.
 
@@ -20,10 +20,10 @@
   [resource consumed-quantity event]
   (cond-> (or resource {})
     (and (integer? consumed-quantity) (pos-int? consumed-quantity) (seq event))
-    (update :automaton-simulation-de.rc/queue
+    (update ::sim-rc/queue
             (fnil #(conj %
                          #:automaton-simulation-de.rc{:seizing-event event
-                                                      :consumed-quantity
+                                                      ::sim-rc/consumed-quantity
                                                       consumed-quantity})
                   []))))
 
@@ -34,36 +34,31 @@
   * the `blockings` removed from the queue and which execution will be attempted.
   * and the updated resource without the event in its queue anymore.
   Note that it may happen that the availability changes before that event is really executed, (i.e. it may happen that capacity change, higher priority events change the number of available resources...)."
-  [{:automaton-simulation-de.rc/keys [queue cache]
+  [{::sim-rc/keys [queue cache]
     :as resource}
    available-capacity]
-  (let [{:automaton-simulation-de.rc/keys [unblocking-policy-fn]} cache]
+  (let [{::sim-rc/keys [unblocking-policy-fn]} cache]
     (cond
       (not (integer? available-capacity))
       (let [[_ new-queue] (unblocking-policy-fn queue)]
         [[]
-         (assoc resource
-                :automaton-simulation-de.rc/queue
-                (if (empty? new-queue) [] new-queue))])
+         (assoc resource ::sim-rc/queue (if (empty? new-queue) [] new-queue))])
       (<= available-capacity 0) [[] resource]
       :else
       (loop [unblocked-events []
              queue queue
              released-capacity 0]
         (let [[blocking new-queue] (unblocking-policy-fn queue)
-              blocked-quantity
-              (get blocking :automaton-simulation-de.rc/consumed-quantity 1)
+              blocked-quantity (get blocking ::sim-rc/consumed-quantity 1)
               new-released-quantity (+ released-capacity blocked-quantity)]
           (cond
-            (nil? blocking) [unblocked-events
-                             (assoc resource
-                                    :automaton-simulation-de.rc/queue
-                                    (if (nil? new-queue) [] new-queue))]
+            (nil? blocking)
+            [unblocked-events
+             (assoc resource ::sim-rc/queue (if (nil? new-queue) [] new-queue))]
             (>= available-capacity new-released-quantity)
             (recur (conj unblocked-events blocking)
                    new-queue
                    new-released-quantity)
-            :else [unblocked-events
-                   (assoc resource
-                          :automaton-simulation-de.rc/queue
-                          (if (nil? queue) [] queue))]))))))
+            :else
+            [unblocked-events
+             (assoc resource ::sim-rc/queue (if (nil? queue) [] queue))]))))))

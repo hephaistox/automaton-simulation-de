@@ -2,23 +2,20 @@
   (:require
    #?(:clj [clojure.test :refer [deftest is testing]]
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
-   [automaton-simulation-de.control       :as sut]
-   [automaton-simulation-de.control.state :as sim-de-rendering-state]
-   [automaton-simulation-de.demo.control  :as sim-demo-control]))
+   [automaton-simulation-de.control           :as sut]
+   [automaton-simulation-de.control.state     :as sim-de-rendering-state]
+   [automaton-simulation-de.demo.control      :as sim-demo-control]
+   [automaton-simulation-de.simulation-engine :as-alias sim-engine]))
 
 (defn- state-it-nb
   [state]
   (get-in (sim-de-rendering-state/get state)
-          [:current-iteration
-           :automaton-simulation-de.response/snapshot
-           :automaton-simulation-de.scheduler.snapshot/iteration]))
+          [:current-iteration ::sim-engine/snapshot ::sim-engine/iteration]))
 
 (defn- snapshot-it-nb
   [control-response]
   (get-in control-response
-          [:automaton-simulation-de.control/response
-           :automaton-simulation-de.response/snapshot
-           :automaton-simulation-de.scheduler.snapshot/iteration]))
+          [::sut/response ::sim-engine/snapshot ::sim-engine/iteration]))
 
 (deftest build-rendering-state-test
   (testing "Basic cases to build state"

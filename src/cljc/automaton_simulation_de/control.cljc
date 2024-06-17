@@ -38,7 +38,9 @@
     :as sim-de-computation-registry]
    [automaton-simulation-de.control.state
     :as sim-de-rendering-state]
-   [automaton-simulation-de.impl.stopping-definition.state-contains
+   [automaton-simulation-de.simulation-engine
+    :as sim-engine]
+   [automaton-simulation-de.simulation-engine.impl.stopping-definition.state-contains
     :as sim-de-sc-state-contains]
    #?(:clj [clojure.core.async :refer [<! go-loop timeout]]
       :cljs [cljs.core.async :refer [<! timeout]]))
@@ -46,11 +48,8 @@
 
 (defn- next-iteration-nb
   [snapshot x]
-  (let [curr-it (or (get-in
-                     snapshot
-                     [:automaton-simulation-de.response/snapshot
-                      :automaton-simulation-de.scheduler.snapshot/iteration])
-                    0)
+  (let [curr-it
+        (or (get-in snapshot [::sim-engine/snapshot ::sim-engine/iteration]) 0)
         new-it-nb (+ curr-it x)]
     (if (< new-it-nb 0) 0 new-it-nb)))
 
@@ -59,7 +58,7 @@
    Adds stopping-criteria that are usefull to manage state"
   [registry]
   (update registry
-          :stopping
+          ::sim-engine/stopping
           merge
           {:state-contains (sim-de-sc-state-contains/stopping-definition)}))
 
@@ -94,11 +93,10 @@
           iteration (sim-de-computation/iteration-n
                      (:computation (sim-de-rendering-state/get state))
                      it-nb)]
-      (when (= :success (:automaton-simulation-de.control/status iteration))
+      (when (= :success (::status iteration))
         (sim-de-rendering-state/set state
                                     :current-iteration
-                                    (:automaton-simulation-de.control/response
-                                     iteration)))
+                                    (::response iteration)))
       iteration)))
 
 (defn pause!
@@ -120,16 +118,14 @@
                               (next-iteration-nb snapshot 1))]
       (cond
         (pause?-fn next-iteration) (on-finish-fn next-iteration)
-        (= :no-next (:automaton-simulation-de.control/status next-iteration))
+        (= :no-next (::status next-iteration))
         (do (on-iteration-fn next-iteration) (on-finish-fn next-iteration))
         :else (do (on-iteration-fn next-iteration)
                   (sleep (play-delay-fn))
                   (recur (sim-de-computation/iteration-n
                           computation
-                          (next-iteration-nb
-                           (:automaton-simulation-de.control/response
-                            next-iteration)
-                           1))))))))
+                          (next-iteration-nb (::response next-iteration)
+                                             1))))))))
 
 (defn play!
   "Render simulation until rendering is paused or impossible to go further.
@@ -137,10 +133,9 @@
    Speed of going to next iteration can be adjusted with `:play-delay` in `state`"
   [state on-iteration-fn]
   (when (and state (:computation (sim-de-rendering-state/get state)))
-    (let [on-iteration-fn #(do (sim-de-rendering-state/set
-                                state
-                                :current-iteration
-                                (:automaton-simulation-de.control/response %))
+    (let [on-iteration-fn #(do (sim-de-rendering-state/set state
+                                                           :current-iteration
+                                                           (::response %))
                                (on-iteration-fn %))]
       (pause! state false)
       (play* (:computation (sim-de-rendering-state/get state))
@@ -166,8 +161,7 @@
                      (:computation (sim-de-rendering-state/get state)))]
       (sim-de-rendering-state/set state
                                   :current-iteration
-                                  (:automaton-simulation-de.control/response
-                                   iteration))
+                                  (::response iteration))
       iteration)))
 
 (defn rewind!
@@ -177,9 +171,8 @@
     (let [iteration (-> (sim-de-rendering-state/get state)
                         :computation
                         (sim-de-computation/iteration-n 0))]
-      (when (= :success (:automaton-simulation-de.control/status iteration))
+      (when (= :success (::status iteration))
         (sim-de-rendering-state/set state
                                     :current-iteration
-                                    (:automaton-simulation-de.control/response
-                                     iteration)))
+                                    (::response iteration)))
       iteration)))
