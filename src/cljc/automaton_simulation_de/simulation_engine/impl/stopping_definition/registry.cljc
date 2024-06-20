@@ -25,22 +25,19 @@
 (def schema
   [:map-of sim-de-sc-definition/id-schema sim-de-sc-definition/schema])
 
+(defn add-stopping-definition
+  "Add the stopping definition in the registry."
+  [registry & stopping-definitions]
+  (merge registry
+         (->> (utils-map/maps-to-key stopping-definitions ::sim-engine/id)
+              (core-schema/add-default schema))))
+
 (defn build
   "The registered stopping criteria registry."
   []
-  (->> (utils-map/maps-to-key [(sim-de-sc-iteration-nth/stopping-definition)
-                               (sim-de-response-validation/stopping-definition)
-                               (sim-de-sc-bucket/stopping-definition)
-                               (sim-de-request-validation/stopping-definition)
-                               (sim-de-sc-now/stopping-definition)]
-                              ::sim-engine/id)
-       (core-schema/add-default schema)))
-
-(comment
-  ;; Execute in clj repl to generate build docstring.
-  #?(:clj (->> (build)
-               (map (fn [[k v]] (format "  * `%s` %s\n" k (:doc v))))
-               sort
-               (apply str)))
-  ;
-)
+  (add-stopping-definition {}
+                           (sim-de-sc-iteration-nth/stopping-definition)
+                           (sim-de-response-validation/stopping-definition)
+                           (sim-de-sc-bucket/stopping-definition)
+                           (sim-de-request-validation/stopping-definition)
+                           (sim-de-sc-now/stopping-definition)))

@@ -1,0 +1,11 @@
+{:builds {:browser-test {:ns-regexp "-test$"
+                         :runner-ns shadow.test.browser
+                         :target :browser-test
+                         :test-dir "target/browser-test"}
+          :ltest {:ns-regexp "-test$"
+                  :output-to "target/ltest.js"
+                  :target :karma}}
+ :deps {:aliases [:cljs-deps]}
+ :dev-http {8080 ["public" "classpath:public"]
+            8290 ["target/browser-test"]}
+ :nrepl {:port 8777}}
