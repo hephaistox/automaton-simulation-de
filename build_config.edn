@@ -5,8 +5,7 @@
                 :deploy-to :clojars
                 :env {:la {}
                       :production {}}
-                :frontend {:css {}
-                           :run-aliases [:browser-test :ltest]}
+                :frontend {:run-aliases [:browser-test :ltest]}
                 :license {}
                 :repo "git@github.com:hephaistox/automaton-simulation-de.git"}
                :repl-aliases [:common-test :env-development-repl :build]}
