@@ -30,7 +30,7 @@
   (->
     (sim-engine/registries)
     (update
-     :event
+     ::sim-engine/event
      merge
      {:IN (sim-de-common/init-events [{::sim-engine/type :MA
                                        ::product :p1
@@ -104,26 +104,27 @@
       :PT sim-de-common/sink})))
 
 (def model-data
-  {:initial-event-type :IN
-   :initial-bucket 0
-   :middlewares [::sim-engine/supp-middlewares-insert]
-   :ordering [[::sim-engine/field ::sim-engine/date]
-              [::sim-engine/type [:IN :MA :MP :MT :PT]]
-              [::sim-engine/field ::machine]
-              [::sim-engine/field ::product]]
-   :stopping-criterias [[::sim-engine/iteration-nth {::sim-engine/n 100}]]
+  {::sim-engine/initial-event-type :IN
+   ::sim-engine/initial-bucket 0
+   ::sim-engine/ordering [[::sim-engine/field ::sim-engine/date]
+                          [::sim-engine/type [:IN :MA :MP :MT :PT]]
+                          [::sim-engine/field ::machine]
+                          [::sim-engine/field ::product]]
+   ::sim-engine/stopping-criterias [[::sim-engine/iteration-nth {::sim-engine/n
+                                                                 100}]]
    :rc {:m1 {}
         :m2 {}
         :m3 {}
         :m4 {}}})
 
+(def model
+  (-> model-data
+      (sim-engine/build-model (registries))
+      (sim-rc/wrap-model model-data
+                         (sim-rc/unblocking-policy-registry)
+                         (sim-rc/preemption-policy-registry))))
+
 (comment
-  (def model
-    (-> model-data
-        (sim-engine/build-model (registries))
-        (sim-rc/wrap-model model-data
-                           (sim-rc/unblocking-policy-registry)
-                           (sim-rc/preemption-policy-registry))))
   (def full-run
     (sim-engine/scheduler model
                           [[::sim-engine/state-printing state-rendering]]

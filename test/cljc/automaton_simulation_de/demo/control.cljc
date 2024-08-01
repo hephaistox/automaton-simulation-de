@@ -22,7 +22,18 @@
 (defn evt-init
   "Add all products arrival to machine M1"
   [{:keys [::sim-engine/date]} _state future-events]
-  #:automaton-simulation-de.simulation-engine{:state {}
+  #:automaton-simulation-de.simulation-engine{:state {:m1 {:transportation []
+                                                           :input []
+                                                           :process nil}
+                                                      :m2 {:transportation []
+                                                           :input []
+                                                           :process nil}
+                                                      :m3 {:transportation []
+                                                           :input []
+                                                           :process nil}
+                                                      :m4 {:transportation []
+                                                           :input []
+                                                           :process nil}}
                                               :future-events
                                               (-> future-events
                                                   (concat
@@ -43,13 +54,19 @@
   "Product `p` is added on machine `m` input buffer at date `d`
   Creates a new event machine start for the same product `p` starts on machine `m` at date `d`"
   [{:keys [::sim-engine/date ::product ::machine]} state future-events]
-  #:automaton-simulation-de.simulation-engine{:state (-> state
-                                                         (update-in
-                                                          [machine :input]
-                                                          (fn [list-products]
-                                                            (vec (conj
-                                                                  list-products
-                                                                  product)))))
+  #:automaton-simulation-de.simulation-engine{:state
+                                              (-> state
+                                                  (update-in
+                                                   [machine :input]
+                                                   (fn [list-products]
+                                                     (vec (conj list-products
+                                                                product))))
+                                                  (update-in
+                                                   [machine :transportation]
+                                                   (fn [list-products]
+                                                     (vec (remove
+                                                           #{product}
+                                                           list-products)))))
                                               :future-events
                                               (->> future-events
                                                    (cons {::sim-engine/type :MP
@@ -93,14 +110,20 @@
     ::keys [product machine]}
    state
    future-events]
-  (let [transportation-end-time (+ date 2)]
-    #:automaton-simulation-de.simulation-engine{:state (assoc-in state
-                                                        [machine :process]
+  (let [transportation-end-time (+ date 2)
+        next-m (rand-nth (get routing machine))]
+    #:automaton-simulation-de.simulation-engine{:state
+                                                (cond-> state
+                                                  true (assoc-in [machine
+                                                                  :process]
                                                         nil)
+                                                  (some? next-m)
+                                                  (update-in [next-m
+                                                              :transportation]
+                                                             conj
+                                                             product))
                                                 :future-events
-                                                (if-let [next-m (rand-nth
-                                                                 (get routing
-                                                                      machine))]
+                                                (if next-m
                                                   (cons {::sim-engine/type :MA
                                                          ::sim-engine/date
                                                          transportation-end-time

@@ -5,62 +5,57 @@
    [automaton-core.adapters.schema                         :as core-schema]
    [automaton-simulation-de.predicates                     :as sim-pred]
    [automaton-simulation-de.predicates.composed-predicates :as sut]
-   [automaton-simulation-de.predicates.equality-predicates
-    :as sim-trans-pred-equality]))
+   [automaton-simulation-de.predicates.equality-predicates :as
+                                                           sim-pred-equality]))
 
 (deftest not-test
+  (is (= false ((sut/not-fn (sim-pred-equality/is?-fn :name :m1)) {:name :m1})))
+  (is (= true ((sut/not-fn (sim-pred-equality/is?-fn :name :m1)) {:name :m2})))
   (is (= false
-         ((sut/not-fn (sim-trans-pred-equality/is?-fn :name :m1)) {:name :m1})))
-  (is (= true
-         ((sut/not-fn (sim-trans-pred-equality/is?-fn :name :m1)) {:name :m2})))
-  (is (= false
-         ((sut/not-fn (sim-trans-pred-equality/is?-fn :name "hello"))
+         ((sut/not-fn (sim-pred-equality/is?-fn :name "hello"))
           {:name "hello"})))
   (is (= false
-         ((sut/not-fn (sim-trans-pred-equality/is?-fn [:name :is :deep]
-                                                      "hello"))
+         ((sut/not-fn (sim-pred-equality/is?-fn [:name :is :deep] "hello"))
           {:name {:is {:deep "hello"}}})))
   (is (= true
-         ((sut/not-fn (sim-trans-pred-equality/is?-fn :name "hELlo"))
+         ((sut/not-fn (sim-pred-equality/is?-fn :name "hELlo"))
           {:name "hello"})))
-  (is (= false
-         ((sut/not-fn (sim-trans-pred-equality/is?-fn :name 5)) {:name 5})))
-  (is (= false ((sut/not-fn (sim-trans-pred-equality/is?-fn 5)) 5)))
-  (is (= false ((sut/not-fn (sim-trans-pred-equality/is?-fn {:a 2})) {:a 2})))
-  (is (= false
-         ((sut/not-fn (sim-trans-pred-equality/is?-fn "hello")) "hello"))))
+  (is (= false ((sut/not-fn (sim-pred-equality/is?-fn :name 5)) {:name 5})))
+  (is (= false ((sut/not-fn (sim-pred-equality/is?-fn 5)) 5)))
+  (is (= false ((sut/not-fn (sim-pred-equality/is?-fn {:a 2})) {:a 2})))
+  (is (= false ((sut/not-fn (sim-pred-equality/is?-fn "hello")) "hello"))))
 
 (deftest and-test
   (is (= true
-         ((sut/and-fn (sim-trans-pred-equality/is?-fn :name :m1)
-                      (sim-trans-pred-equality/true?-fn :something))
+         ((sut/and-fn (sim-pred-equality/is?-fn :name :m1)
+                      (sim-pred-equality/true?-fn :something))
           {:name :m1
            :something true})))
   (is (= false
-         ((sut/and-fn (sim-trans-pred-equality/is?-fn :name :m2)
-                      (sim-trans-pred-equality/true?-fn :something))
+         ((sut/and-fn (sim-pred-equality/is?-fn :name :m2)
+                      (sim-pred-equality/true?-fn :something))
           {:name :m1
            :something true})))
   (is (= false
-         ((sut/and-fn (sim-trans-pred-equality/true?-fn :something)
-                      (sim-trans-pred-equality/is?-fn :name :m2))
+         ((sut/and-fn (sim-pred-equality/true?-fn :something)
+                      (sim-pred-equality/is?-fn :name :m2))
           {:name :m1
            :something false}))))
 
 (deftest or-test
   (is (= true
-         ((sut/or-fn (sim-trans-pred-equality/is?-fn :name :m1)
-                     (sim-trans-pred-equality/true?-fn :something))
+         ((sut/or-fn (sim-pred-equality/is?-fn :name :m1)
+                     (sim-pred-equality/true?-fn :something))
           {:name :m1
            :something true})))
   (is (= true
-         ((sut/or-fn (sim-trans-pred-equality/is?-fn :name :m2)
-                     (sim-trans-pred-equality/true?-fn :something))
+         ((sut/or-fn (sim-pred-equality/is?-fn :name :m2)
+                     (sim-pred-equality/true?-fn :something))
           {:name :m1
            :something true})))
   (is (= false
-         ((sut/or-fn (sim-trans-pred-equality/true?-fn :something)
-                     (sim-trans-pred-equality/is?-fn :name :m2))
+         ((sut/or-fn (sim-pred-equality/true?-fn :something)
+                     (sim-pred-equality/is?-fn :name :m2))
           {:name :m1
            :something false}))))
 
