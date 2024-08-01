@@ -4,10 +4,10 @@
    This namespace is about managing that language"
   (:require
    [automaton-core.adapters.schema                         :as core-schema]
-   [automaton-simulation-de.predicates.composed-predicates
-    :as sim-trans-pred-composed]
-   [automaton-simulation-de.predicates.equality-predicates
-    :as sim-trans-pred-equality]
+   [automaton-simulation-de.predicates.composed-predicates :as
+                                                           sim-pred-composed]
+   [automaton-simulation-de.predicates.equality-predicates :as
+                                                           sim-pred-equality]
    [clojure.walk                                           :as walk]))
 
 (def pred-lang-schema
@@ -30,8 +30,8 @@
 (def predicates-registry
   "Default predicates language registry.
    [See more](docs/archi/transformation/predicate_registry.png)"
-  (merge sim-trans-pred-equality/equality-predicates-lang-reg
-         sim-trans-pred-composed/composed-predicates-lang-reg))
+  (merge sim-pred-equality/equality-predicates-lang-reg
+         sim-pred-composed/composed-predicates-lang-reg))
 
 (defn is-predicate?
   [reg pred]
@@ -64,16 +64,17 @@
 
 (defn predicate-lang->predicate-fn
   "Translates `pred` vector language into a function. Expects `reg` map containing predicate name as keys with values containing a function under :pred-fn"
-  [reg pred]
-  (clojure.walk/postwalk
-   (fn [el]
-     (cond
-       (keyword? el) (if-let [pred-fn (get-in reg [el :pred-fn])]
-                       pred-fn
-                       el)
-       (and (vector? el) (fn? (first el))) (apply (first el) (rest el))
-       :else el))
-   pred))
+  ([pred] (predicate-lang->predicate-fn predicates-registry pred))
+  ([reg pred]
+   (clojure.walk/postwalk
+    (fn [el]
+      (cond
+        (keyword? el) (if-let [pred-fn (get-in reg [el :pred-fn])]
+                        pred-fn
+                        el)
+        (and (vector? el) (fn? (first el))) (apply (first el) (rest el))
+        :else el))
+    pred)))
 
 (defn predicate-lang->pred-fn-detailed
   "Turns predicate query language into a function"
