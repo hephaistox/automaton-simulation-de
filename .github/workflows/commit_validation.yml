@@ -1,6 +1,10 @@
 name: Commit validation
 run-name: ${{ github.event.head_commit.message }} pushed by ${{ github.actor }}, to test and lint - $${{ github.sha }}
-on: [push]
+on: 
+  push:
+     branches:
+        - '*'                     # matches all branches
+        - '!gh-pages-dont-change' # except the one for pages
 jobs:
   run-bb:
     runs-on: ubuntu-latest
