@@ -1,4 +1,0 @@
-;; This configuration file contains all configuration common to all environments.
-{:app-name "automaton-simulation-de"
- :log {:spitted-edns "tmp/logs/spitted"}
- :tests {:tmp-dirs "tmp/tests"}}
