@@ -1,8 +1,8 @@
 {:aliases
  {:bb-deps {:extra-deps #:org.clojars.hephaistox{automaton-build
-                                                 #:mvn{:version "2.0.1-5-la"}}}
+                                                 #:mvn{:version "2.0.1-6-la"}}}
   :build {:extra-deps #:org.clojars.hephaistox{automaton-build
-                                               #:mvn{:version "2.0.1-5-la"}}
+                                               #:mvn{:version "2.0.1-6-la"}}
           :ns-default build}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
                            thheller/shadow-cljs #:mvn{:version "2.28.2"}}
@@ -47,5 +47,5 @@
                "test/clj"
                "-d"
                "test/cljc"]}}
- :deps {org.clojars.hephaistox/automaton-core #:mvn{:version "1.2.8-5-la"}}
+ :deps {org.clojars.hephaistox/automaton-core #:mvn{:version "1.2.8-6-la"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}
