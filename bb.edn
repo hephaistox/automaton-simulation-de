@@ -1,5 +1,5 @@
 ;; The file is updated automatically
-{:deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "2.0.2-3-la"}}
+{:deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.0.0-la"}}
  :paths []
  :tasks
  {:requires
