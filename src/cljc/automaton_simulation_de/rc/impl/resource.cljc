@@ -12,23 +12,17 @@
   * `unblocking-policy` (default ::simde-rc/FIFO) refers to an entity from the `automaton-simulation-de.rc.policies` registry, that registry will allow to pick one element in a queue."
   (:require
    [automaton-simulation-de.rc                                :as-alias sim-rc]
-   [automaton-simulation-de.rc.impl.preemption-policy.factory
-    :as sim-de-rc-preemption-policy-factory]
-   [automaton-simulation-de.rc.impl.resource.consumption
-    :as sim-de-rc-consumption]
-   [automaton-simulation-de.rc.impl.resource.queue            :as
-                                                              sim-de-rc-queue]
-   [automaton-simulation-de.rc.impl.unblocking-policy.factory
-    :as sim-de-rc-unblocking-policy-factory]))
+   [automaton-simulation-de.rc.impl.preemption-policy.factory :as
+                                                              sim-de-rc-preemption-policy-factory]
+   [automaton-simulation-de.rc.impl.resource.consumption      :as sim-de-rc-consumption]
+   [automaton-simulation-de.rc.impl.resource.queue            :as sim-de-rc-queue]
+   [automaton-simulation-de.rc.impl.unblocking-policy.factory :as
+                                                              sim-de-rc-unblocking-policy-factory]))
 
 (defn defaulting-values
   "Returns a resource with default values added."
-  [{::sim-rc/keys [capacity
-                   currently-consuming
-                   preemption-policy
-                   queue
-                   renewable?
-                   unblocking-policy]
+  [{::sim-rc/keys
+    [capacity currently-consuming preemption-policy queue renewable? unblocking-policy]
     :as resource
     :or {capacity 1
          currently-consuming {}
@@ -45,14 +39,12 @@
          ::sim-rc/queue queue
          ::sim-rc/renewable? renewable?
          ::sim-rc/unblocking-policy unblocking-policy
-         ::sim-rc/cache {::sim-rc/unblocking-policy-fn
-                         (sim-de-rc-unblocking-policy-factory/factory
-                          unblocking-policy-registry
-                          unblocking-policy)
-                         ::sim-rc/preemption-policy-fn
-                         (sim-de-rc-preemption-policy-factory/factory
-                          preemption-policy-registry
-                          preemption-policy)}))
+         ::sim-rc/cache {::sim-rc/unblocking-policy-fn (sim-de-rc-unblocking-policy-factory/factory
+                                                        unblocking-policy-registry
+                                                        unblocking-policy)
+                         ::sim-rc/preemption-policy-fn (sim-de-rc-preemption-policy-factory/factory
+                                                        preemption-policy-registry
+                                                        preemption-policy)}))
 
 (defn nb-consumed-resources
   "Returns the number of consumed resources."
@@ -85,8 +77,7 @@
   [resource consumed-quantity postponed-event]
   (if (>= (compare (nb-available-resources resource) consumed-quantity) 0)
     (sim-de-rc-consumption/consume resource consumed-quantity postponed-event)
-    [nil
-     (sim-de-rc-queue/queue-event resource consumed-quantity postponed-event)]))
+    [nil (sim-de-rc-queue/queue-event resource consumed-quantity postponed-event)]))
 
 (defn dispose
   "Returns a pair of:
@@ -112,5 +103,4 @@
     (if (< new-capacity capacity)
       (preemption-policy-fn resource)
       ;; Capacity increase
-      (sim-de-rc-queue/unqueue-event resource
-                                     (nb-available-resources resource)))))
+      (sim-de-rc-queue/unqueue-event resource (nb-available-resources resource)))))

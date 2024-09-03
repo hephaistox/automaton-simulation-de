@@ -16,8 +16,7 @@
 
 (defn stopping-definition
   []
-  #:automaton-simulation-de.simulation-engine{:doc
-                                              "Stop at `bucket` `b` or later on."
+  #:automaton-simulation-de.simulation-engine{:doc "Stop at `bucket` `b` or later on."
                                               :id ::bucket-stopping
                                               :next-possible? true
                                               :stopping-evaluation stop-bucket})

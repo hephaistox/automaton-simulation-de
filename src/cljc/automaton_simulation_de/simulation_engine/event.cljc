@@ -28,7 +28,5 @@
 (defn postpone-events
   "Scan event in `events` for which `(event-filter-fn event)` is true, its date is postponed to `date`."
   [events event-filter-fn date]
-  (mapv
-   (fn [event]
-     (if (event-filter-fn event) (assoc event ::sim-engine/date date) event))
-   events))
+  (mapv (fn [event] (if (event-filter-fn event) (assoc event ::sim-engine/date date) event))
+        events))

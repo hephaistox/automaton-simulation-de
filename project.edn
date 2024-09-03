@@ -1,5 +1,4 @@
 {:app-name "automaton-simulation-de"
  :code {:forbidden-words ["TODO" "DONE" "NOTE" "FIXME" "tap>"]}
  :publication {:base-branch "main"
-               :repo-url
-               "git@github.com:hephaistox/automaton-simulation-de.git"}}
+               :repo-url "git@github.com:hephaistox/automaton-simulation-de.git"}}

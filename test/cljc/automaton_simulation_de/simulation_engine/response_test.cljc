@@ -10,8 +10,7 @@
   #:automaton-simulation-de.simulation-engine{:type :a
                                               :date 1})
 
-(deftest schema-test
-  (is (= nil (core-schema/validate-humanize sut/schema)) "Test schema"))
+(deftest schema-test (is (= nil (core-schema/validate-humanize sut/schema)) "Test schema"))
 
 (deftest build-test
   (is
@@ -20,8 +19,7 @@
     (->>
       #:automaton-simulation-de.simulation-engine{:stopping-causes []
                                                   :snapshot
-                                                  #:automaton-simulation-de.simulation-engine{:id
-                                                                                              1
+                                                  #:automaton-simulation-de.simulation-engine{:id 1
                                                                                               :iteration
                                                                                               1
                                                                                               :date
@@ -32,8 +30,7 @@
                                                                                               []
                                                                                               :future-events
                                                                                               [event-stub]}}
-      (core-schema/validate-data-humanize (core-schema/close-map-schema
-                                           sut/schema))))
+      (core-schema/validate-data-humanize (core-schema/close-map-schema sut/schema))))
    "Build response complies the schema."))
 
 (deftest add-stopping-cause-test
@@ -67,8 +64,7 @@
     (->
       #:automaton-simulation-de.simulation-engine{:stopping-causes []
                                                   :snapshot
-                                                  #:automaton-simulation-de.simulation-engine{:id
-                                                                                              3
+                                                  #:automaton-simulation-de.simulation-engine{:id 3
                                                                                               :iteration
                                                                                               3
                                                                                               :date
@@ -88,8 +84,7 @@
     (->
       #:automaton-simulation-de.simulation-engine{:stopping-causes []
                                                   :snapshot
-                                                  #:automaton-simulation-de.simulation-engine{:id
-                                                                                              3
+                                                  #:automaton-simulation-de.simulation-engine{:id 3
                                                                                               :iteration
                                                                                               3
                                                                                               :date
@@ -108,8 +103,7 @@
     (->
       #:automaton-simulation-de.simulation-engine{:stopping-causes []
                                                   :snapshot
-                                                  #:automaton-simulation-de.simulation-engine{:id
-                                                                                              3
+                                                  #:automaton-simulation-de.simulation-engine{:id 3
                                                                                               :iteration
                                                                                               3
                                                                                               :date
@@ -128,8 +122,7 @@
     (->
       #:automaton-simulation-de.simulation-engine{:stopping-causes []
                                                   :snapshot
-                                                  #:automaton-simulation-de.simulation-engine{:id
-                                                                                              3
+                                                  #:automaton-simulation-de.simulation-engine{:id 3
                                                                                               :iteration
                                                                                               3
                                                                                               :date
@@ -148,19 +141,16 @@
   (is
    (=
     #:automaton-simulation-de.simulation-engine{:stopping-causes
-                                                [#:automaton-simulation-de.simulation-engine{:a
-                                                                                             :b
+                                                [#:automaton-simulation-de.simulation-engine{:a :b
                                                                                              :current-event
                                                                                              event-stub}
-                                                 #:automaton-simulation-de.simulation-engine{:c
-                                                                                             :d
+                                                 #:automaton-simulation-de.simulation-engine{:c :d
                                                                                              :current-event
                                                                                              event-stub}]
                                                 :snapshot nil}
     (sut/add-current-event-to-stopping-causes
      #:automaton-simulation-de.simulation-engine{:stopping-causes
-                                                 [#:automaton-simulation-de.simulation-engine{:a
-                                                                                              :b}
+                                                 [#:automaton-simulation-de.simulation-engine{:a :b}
                                                   #:automaton-simulation-de.simulation-engine{:c
                                                                                               :d}]
                                                  :snapshot nil}

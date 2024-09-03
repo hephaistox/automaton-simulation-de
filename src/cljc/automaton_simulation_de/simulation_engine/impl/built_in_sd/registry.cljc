@@ -1,12 +1,11 @@
 (ns automaton-simulation-de.simulation-engine.impl.built-in-sd.registry
   "built-in `stopping-definition` can create `stopping-cause` but they are not accessible for modellers, they are hard coded."
   (:require
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-core.utils.map
-    :as utils-map]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
+   [automaton-core.adapters.schema                                                    :as
+                                                                                      core-schema]
+   [automaton-core.utils.map                                                          :as utils-map]
+   [automaton-simulation-de.simulation-engine                                         :as-alias
+                                                                                      sim-engine]
    [automaton-simulation-de.simulation-engine.impl.built-in-sd.causality-broken
     :as sim-de-causality-broken]
    [automaton-simulation-de.simulation-engine.impl.built-in-sd.execution-not-found
@@ -18,8 +17,7 @@
    [automaton-simulation-de.simulation-engine.impl.stopping.definition
     :as sim-de-sc-definition]))
 
-(def schema
-  [:map-of sim-de-sc-definition/id-schema sim-de-sc-definition/schema])
+(def schema [:map-of sim-de-sc-definition/id-schema sim-de-sc-definition/schema])
 
 (def stopping-definitions
   [sim-de-causality-broken/stopping-definition
@@ -35,8 +33,7 @@
 
 (comment
   #?(:clj (->> (build)
-               (map (fn [[k v]]
-                      (format "  * `%s` %s\n" k (::sim-engine/doc v))))
+               (map (fn [[k v]] (format "  * `%s` %s\n" k (::sim-engine/doc v))))
                sort
                (apply str)))
   ;

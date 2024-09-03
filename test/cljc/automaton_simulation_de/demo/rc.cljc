@@ -5,8 +5,7 @@
    [automaton-simulation-de.event-library.common           :as sim-de-common]
    [automaton-simulation-de.rc                             :as sim-rc]
    [automaton-simulation-de.simulation-engine              :as sim-engine]
-   [automaton-simulation-de.simulation-engine.event-return
-    :as sim-de-event-return]))
+   [automaton-simulation-de.simulation-engine.event-return :as sim-de-event-return]))
 
 (defn state-rendering
   [state]
@@ -15,13 +14,11 @@
            (for [{::sim-rc/keys [name currently-consuming queue]} resources]
              (concat
               (mapv (fn [consumption]
-                      (clojure.core/name
-                       (get-in consumption [::sim-rc/seizing-event ::product])))
+                      (clojure.core/name (get-in consumption [::sim-rc/seizing-event ::product])))
                     queue)
               ["->" (clojure.core/name name) "("]
               (map (fn [consumption]
-                     (clojure.core/name
-                      (get-in consumption [::sim-rc/seizing-event ::product])))
+                     (clojure.core/name (get-in consumption [::sim-rc/seizing-event ::product])))
                    (vals currently-consuming))
               [")"])))))
 
@@ -47,8 +44,7 @@
                state
                future-events]
             (-> #:automaton-simulation-de.simulation-engine{:state state
-                                                            :future-events
-                                                            future-events}
+                                                            :future-events future-events}
                 (sim-rc/seize machine
                               1
                               date
@@ -61,16 +57,14 @@
                state
                future-events]
             (-> #:automaton-simulation-de.simulation-engine{:state state
-                                                            :future-events
-                                                            future-events}
+                                                            :future-events future-events}
                 (sim-de-event-return/add-event {::sim-engine/type :MT
                                                 ::sim-engine/date (+ date
-                                                                     (get
-                                                                      {:m1 1
-                                                                       :m2 3
-                                                                       :m3 3
-                                                                       :m4 1}
-                                                                      machine))
+                                                                     (get {:m1 1
+                                                                           :m2 3
+                                                                           :m3 3
+                                                                           :m4 1}
+                                                                          machine))
                                                 ::sim-rc/resource resource
                                                 ::product product
                                                 ::machine machine})))
@@ -85,8 +79,7 @@
                                       :m3 [:m4]}
                                      machine)]
               (-> #:automaton-simulation-de.simulation-engine{:state state
-                                                              :future-events
-                                                              future-events}
+                                                              :future-events future-events}
                   (sim-rc/dispose machine current-event)
                   (sim-de-event-return/if-return
                    (empty? next-machines)
@@ -110,8 +103,7 @@
                           [::sim-engine/type [:IN :MA :MP :MT :PT]]
                           [::sim-engine/field ::machine]
                           [::sim-engine/field ::product]]
-   ::sim-engine/stopping-criterias [[::sim-engine/iteration-nth {::sim-engine/n
-                                                                 100}]]
+   ::sim-engine/stopping-criterias [[::sim-engine/iteration-nth {::sim-engine/n 100}]]
    :rc {:m1 {}
         :m2 {}
         :m3 {}
@@ -128,29 +120,23 @@
   (def full-run
     (sim-engine/scheduler model
                           [[::sim-engine/state-printing state-rendering]]
-                          [::sim-engine/response-validation
-                           ::sim-engine/request-validation]))
+                          [::sim-engine/response-validation ::sim-engine/request-validation]))
   (def s1
     (sim-engine/scheduler model
-                          [::sim-engine/response-validation
-                           ::sim-engine/request-validation]
+                          [::sim-engine/response-validation ::sim-engine/request-validation]
                           [[::sim-engine/iteration-nth {::sim-engine/n 1}]]))
   (def s2
     (->> s1
          sim-engine/extract-snapshot
-         (sim-engine/scheduler
-          model
-          [::sim-engine/response-validation ::sim-engine/request-validation]
-          [[::sim-engine/iteration-nth {::sim-engine/n 10}]])))
+         (sim-engine/scheduler model
+                               [::sim-engine/response-validation ::sim-engine/request-validation]
+                               [[::sim-engine/iteration-nth {::sim-engine/n 10}]])))
   (-> s2
       sim-engine/validate-response)
   (def s3
     (->> s1
          sim-engine/extract-snapshot
-         (sim-engine/scheduler model
-                               [::sim-engine/tap-response
-                                ::sim-engine/tap-request]
-                               [])))
+         (sim-engine/scheduler model [::sim-engine/tap-response ::sim-engine/tap-request] [])))
   (-> s3
       sim-engine/validate-response)
   ;

@@ -5,9 +5,7 @@
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
    [automaton-simulation-de.simulation-engine.middleware :as sut]))
 
-(deftest id-schema-test
-  (is (= nil (core-schema/validate-humanize sut/id-schema))))
+(deftest id-schema-test (is (= nil (core-schema/validate-humanize sut/id-schema))))
 
 (deftest schema-test
-  (testing "Valid schema?"
-    (is (= nil (core-schema/validate-humanize sut/schema)))))
+  (testing "Valid schema?" (is (= nil (core-schema/validate-humanize sut/schema)))))

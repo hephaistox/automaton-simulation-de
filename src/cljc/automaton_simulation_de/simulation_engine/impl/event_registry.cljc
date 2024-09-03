@@ -5,8 +5,7 @@
 
   * [See entity](docs/archi/registry_entity.png)"
   (:require
-   [automaton-simulation-de.simulation-engine.event-execution
-    :as sim-de-event-execution]))
+   [automaton-simulation-de.simulation-engine.event-execution :as sim-de-event-execution]))
 
 (def schema
   "Map associating `event-type` to `event-execution`.

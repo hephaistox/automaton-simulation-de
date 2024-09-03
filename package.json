@@ -14,12 +14,11 @@
     "create-react-class": "^15.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.16.0",
-    "tw-elements": "^2.0.0"
+    "react-router-dom": "^6.16.0"
   },
   "workspaces": [],
   "devDependencies": {
-    "@hephaistox/tailwind-config": "hephaistox/tailwind-config#main",
+    "@hephaistox/tailwind-config": "hephaistox/tailwind-config#f8da71dcc315ac6f3652695a92495ea3f5298d13",
     "@tailwindcss/forms": "^0.5.6",
     "highlight.js": "^11.9.0",
     "karma": "^6.4.2",

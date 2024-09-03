@@ -2,10 +2,8 @@
   "Registry for `preemption-policy`."
   (:require
    [automaton-simulation-de.rc                             :as-alias sim-rc]
-   [automaton-simulation-de.rc.impl.preemption-policy.base
-    :as sim-de-rc-preemption-policy-base]
-   [automaton-simulation-de.rc.preemption-policy
-    :as sim-de-rc-preemption-policy]))
+   [automaton-simulation-de.rc.impl.preemption-policy.base :as sim-de-rc-preemption-policy-base]
+   [automaton-simulation-de.rc.preemption-policy           :as sim-de-rc-preemption-policy]))
 
 (defn schema
   "Schema for a `preemption-policy` registry."

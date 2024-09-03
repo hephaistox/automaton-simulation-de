@@ -14,10 +14,10 @@
   ![aggregate](archi/scheduler_aggregate.png)
   ![state diagram](archi/scheduler_state.png)"
   (:require
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
+   [automaton-core.adapters.schema                                                    :as
+                                                                                      core-schema]
+   [automaton-simulation-de.simulation-engine                                         :as-alias
+                                                                                      sim-engine]
    [automaton-simulation-de.simulation-engine.event-return
     :as sim-de-event-return]
    [automaton-simulation-de.simulation-engine.impl.built-in-sd.execution-not-found
@@ -30,8 +30,8 @@
     :as sim-de-middleware-registry]
    [automaton-simulation-de.simulation-engine.impl.middlewares
     :as sim-de-middlewares]
-   [automaton-simulation-de.simulation-engine.impl.model
-    :as sim-de-model]
+   [automaton-simulation-de.simulation-engine.impl.model                              :as
+                                                                                      sim-de-model]
    [automaton-simulation-de.simulation-engine.impl.model-data
     :as sim-de-model-data]
    [automaton-simulation-de.simulation-engine.impl.stopping.criteria
@@ -52,33 +52,24 @@
 
   * `sim-de-execution-not-found` if an `event-execution` is not found, that event is moved to `past-events` and the `stopping-cause` added.
   * `sim-failed-event-execution` if an exception is raised during `event-execution`, the `stopping-cause` is added."
-  [{::sim-engine/keys
-    [stopping-causes snapshot event-execution sorting current-event]
+  [{::sim-engine/keys [stopping-causes snapshot event-execution sorting current-event]
     :as _request}]
-  (let [response #:automaton-simulation-de.simulation-engine{:stopping-causes
-                                                             stopping-causes
-                                                             :snapshot
-                                                             snapshot}]
+  (let [response #:automaton-simulation-de.simulation-engine{:stopping-causes stopping-causes
+                                                             :snapshot snapshot}]
     (cond
       (seq stopping-causes) response
-      (not (fn? event-execution))
-      (-> response
-          (sim-de-execution-not-found/evaluates
-           (get-in snapshot [::sim-engine/future-events 0]))
-          (sim-de-response/consume-first-event current-event))
+      (not (fn? event-execution)) (-> response
+                                      (sim-de-execution-not-found/evaluates
+                                       (get-in snapshot [::sim-engine/future-events 0]))
+                                      (sim-de-response/consume-first-event current-event))
       :else (try (let [{::sim-engine/keys [state future-events]} snapshot
                        [current-event & future-events-wo-current] future-events
-                       event-return (event-execution current-event
-                                                     state
-                                                     future-events-wo-current)]
-                   (-> response
-                       (sim-de-response/consume-first-event current-event)
-                       (update ::sim-engine/snapshot
-                               sim-de-event-return/update-snapshot
-                               event-return)
-                       (update ::sim-engine/snapshot
-                               sim-de-snapshot/sort-future-events
-                               sorting)))
+                       event-return (event-execution current-event state future-events-wo-current)]
+                   (->
+                     response
+                     (sim-de-response/consume-first-event current-event)
+                     (update ::sim-engine/snapshot sim-de-event-return/update-snapshot event-return)
+                     (update ::sim-engine/snapshot sim-de-snapshot/sort-future-events sorting)))
                  (catch #?(:clj Exception
                            :cljs :default)
                    e
@@ -106,13 +97,10 @@
         stopping-causes (->> stopping-criterias
                              (mapv #(sim-de-criteria/evaluates % snapshot))
                              (filter some?))
-        request #:automaton-simulation-de.simulation-engine{:stopping-causes
-                                                            stopping-causes
+        request #:automaton-simulation-de.simulation-engine{:stopping-causes stopping-causes
                                                             :snapshot snapshot
-                                                            :event-execution
-                                                            event-execution
-                                                            :current-event
-                                                            current-event
+                                                            :event-execution event-execution
+                                                            :current-event current-event
                                                             :sorting sorting}]
     (-> request
         (sim-de-no-future-events/evaluates future-events)
@@ -122,24 +110,21 @@
 (defn invalid-inputs
   "Returns a map describing why it is invalid or `nil` if it is valid."
   [model scheduler-middlewares scheduler-stopping-criterias snapshot]
-  (let
-    [validate-data
-     #:automaton-simulation-de.simulation-engine{:model
-                                                 (core-schema/validate-data-humanize
-                                                  sim-de-model/schema
-                                                  model)
-                                                 :snapshot
-                                                 (core-schema/validate-data-humanize
-                                                  sim-de-snapshot/schema
-                                                  snapshot)
-                                                 :scheduler-middlewares
-                                                 (core-schema/validate-data-humanize
-                                                  sim-de-model-data/middlewares-schema
-                                                  scheduler-middlewares)
-                                                 :scheduler-stopping-criteria
-                                                 (core-schema/validate-data-humanize
-                                                  sim-de-model-data/stopping-criterias-schema
-                                                  scheduler-stopping-criterias)}]
+  (let [validate-data
+        #:automaton-simulation-de.simulation-engine{:model (core-schema/validate-data-humanize
+                                                            sim-de-model/schema
+                                                            model)
+                                                    :snapshot (core-schema/validate-data-humanize
+                                                               sim-de-snapshot/schema
+                                                               snapshot)
+                                                    :scheduler-middlewares
+                                                    (core-schema/validate-data-humanize
+                                                     sim-de-model-data/middlewares-schema
+                                                     scheduler-middlewares)
+                                                    :scheduler-stopping-criteria
+                                                    (core-schema/validate-data-humanize
+                                                     sim-de-model-data/stopping-criterias-schema
+                                                     scheduler-stopping-criterias)}]
     (when (not-every? nil? (vals validate-data)) validate-data)))
 
 (defn scheduler
@@ -153,13 +138,11 @@
 
   Returns a `response` with the last snapshot and the `stopping-causes`."
   [model scheduler-middlewares scheduler-stopping-criterias snapshot]
-  (let [{::sim-engine/keys [registry middlewares ordering stopping-criterias]}
-        model
+  (let [{::sim-engine/keys [registry middlewares ordering stopping-criterias]} model
         event-registry (::sim-engine/event registry)
         updated-middlewares (->> scheduler-middlewares
-                                 (map (partial
-                                       sim-de-middleware-registry/data-to-fn
-                                       (::sim-engine/middleware registry)))
+                                 (map (partial sim-de-middleware-registry/data-to-fn
+                                               (::sim-engine/middleware registry)))
                                  (filterv some?))
         updated-scs (->> scheduler-stopping-criterias
                          (map (partial sim-de-criteria/api-data-to-entity
@@ -167,32 +150,23 @@
                          (filter some?)
                          (mapv sim-de-criteria/out-of-model)
                          (concat stopping-criterias))
-        initial-snapshot
-        (if (map? snapshot)
-          snapshot
-          #:automaton-simulation-de.simulation-engine{:id 1
-                                                      :iteration 1
-                                                      :date nil
-                                                      :state {}
-                                                      :past-events []
-                                                      :future-events []})
+        initial-snapshot (if (map? snapshot)
+                           snapshot
+                           #:automaton-simulation-de.simulation-engine{:id 1
+                                                                       :iteration 1
+                                                                       :date nil
+                                                                       :state {}
+                                                                       :past-events []
+                                                                       :future-events []})
         sorting (sim-de-ordering/sorter ordering)
         wrapped-handler (->> updated-middlewares
-                             (sim-de-middlewares/concat-supp-middlewares
-                              middlewares)
+                             (sim-de-middlewares/concat-supp-middlewares middlewares)
                              (sim-de-middlewares/wrap-handler handler))
-        sorted-snapshot
-        (update initial-snapshot ::sim-engine/future-events sorting)]
+        sorted-snapshot (update initial-snapshot ::sim-engine/future-events sorting)]
     (loop [iteration-nb 1
            snapshot sorted-snapshot]
-      (let [response (scheduler-loop event-registry
-                                     sorting
-                                     wrapped-handler
-                                     snapshot
-                                     updated-scs)
+      (let [response (scheduler-loop event-registry sorting wrapped-handler snapshot updated-scs)
             {stopping-causes ::sim-engine/stopping-causes
              result-snapshot ::sim-engine/snapshot}
             response]
-        (if (seq stopping-causes)
-          response
-          (recur (inc iteration-nb) result-snapshot))))))
+        (if (seq stopping-causes) response (recur (inc iteration-nb) result-snapshot))))))

@@ -2,14 +2,13 @@
   (:require
    #?(:clj [clojure.test :refer [deftest is]]
       :cljs [cljs.test :refer [deftest is] :include-macros true])
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
+   [automaton-core.adapters.schema                                                   :as
+                                                                                     core-schema]
+   [automaton-simulation-de.simulation-engine                                        :as-alias
+                                                                                     sim-engine]
    [automaton-simulation-de.simulation-engine.impl.stopping-definition.iteration-nth
     :as sim-de-sc-iteration-nth]
-   [automaton-simulation-de.simulation-engine.impl.stopping.cause
-    :as sut]))
+   [automaton-simulation-de.simulation-engine.impl.stopping.cause                    :as sut]))
 
 (deftest schema-test
   (is (= nil

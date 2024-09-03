@@ -7,8 +7,7 @@
 (def stopping-definition
   #:automaton-simulation-de.simulation-engine{:id ::sim-engine/no-future-events
                                               :next-possible? false
-                                              :doc
-                                              "Stops when no future events exists anymore."})
+                                              :doc "Stops when no future events exists anymore."})
 
 (defn evaluates
   [request future-events]

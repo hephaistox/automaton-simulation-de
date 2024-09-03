@@ -1,5 +1,4 @@
-(ns
-  automaton-simulation-de.simulation-engine.impl.built-in-sd.failed-event-execution
+(ns automaton-simulation-de.simulation-engine.impl.built-in-sd.failed-event-execution
   "`stopping-definition` to stop when an execution has raised an exception."
   (:require
    [automaton-simulation-de.simulation-engine          :as-alias sim-engine]

@@ -6,10 +6,8 @@
    [automaton-simulation-de.rc.impl.unblocking-policy.registry :as sut]))
 
 (deftest schema-test
-  (testing "Validate schema"
-    (is (nil? (core-schema/validate-humanize (sut/schema))))))
+  (testing "Validate schema" (is (nil? (core-schema/validate-humanize (sut/schema))))))
 
 (deftest registry-test
   (testing "Validate registry"
-    (is (nil? (core-schema/validate-data-humanize (sut/schema)
-                                                  (sut/registry))))))
+    (is (nil? (core-schema/validate-data-humanize (sut/schema) (sut/registry))))))

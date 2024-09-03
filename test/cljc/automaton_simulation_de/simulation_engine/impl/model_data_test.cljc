@@ -3,8 +3,7 @@
    #?(:clj [clojure.test :refer [deftest is testing]]
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
    [automaton-core.adapters.schema                            :as core-schema]
-   [automaton-simulation-de.simulation-engine                 :as-alias
-                                                              sim-engine]
+   [automaton-simulation-de.simulation-engine                 :as-alias sim-engine]
    [automaton-simulation-de.simulation-engine.impl.model-data :as sut]))
 
 (deftest schema-test
@@ -15,18 +14,13 @@
     (is (= nil (core-schema/validate-humanize sut/schema)))))
 
 (deftest middlewares-schema-test
-  (testing "Schema is valid."
-    (is (= nil (core-schema/validate-humanize sut/middlewares-schema))))
+  (testing "Schema is valid." (is (= nil (core-schema/validate-humanize sut/middlewares-schema))))
   (testing "Empty middlewares are ok."
     (is (= nil (core-schema/validate-data-humanize sut/middlewares-schema []))))
   (testing "Keyword middlewares are ok."
-    (is (= nil
-           (core-schema/validate-data-humanize sut/middlewares-schema
-                                               [:foo :bar]))))
+    (is (= nil (core-schema/validate-data-humanize sut/middlewares-schema [:foo :bar]))))
   (testing "Vectors of keyword middlewares are ok."
-    (is (= nil
-           (core-schema/validate-data-humanize sut/middlewares-schema
-                                               [[:foo]]))))
+    (is (= nil (core-schema/validate-data-humanize sut/middlewares-schema [[:foo]]))))
   (testing "Vectors of keyword + maps are ok."
     (is (= nil
            (core-schema/validate-data-humanize sut/middlewares-schema
@@ -41,21 +35,15 @@
     (is (= nil
            (core-schema/validate-data-humanize
             sut/middlewares-schema
-            [[10
-              :state-printing
-              (fn [handler] (fn [request] (request handler)))]])))))
+            [[10 :state-printing (fn [handler] (fn [request] (request handler)))]])))))
 
 (deftest stopping-criteria-schema-test
   (testing "Valid stopping criteria."
-    (is (= nil
-           (core-schema/validate-data-humanize sut/stopping-criterias-schema
-                                               [[:foo]])))
+    (is (= nil (core-schema/validate-data-humanize sut/stopping-criterias-schema [[:foo]])))
     (is (= nil
            (core-schema/validate-data-humanize sut/stopping-criterias-schema
                                                [[:foo {}]])))
-    (is (= nil
-           (core-schema/validate-data-humanize sut/stopping-criterias-schema
-                                               [])))
+    (is (= nil (core-schema/validate-data-humanize sut/stopping-criterias-schema [])))
     (is
      (=
       ["invalid type"]
@@ -63,8 +51,7 @@
         (core-schema/validate-data-humanize
          sut/stopping-criterias-schema
          #:automaton-simulation-de.simulation-engine{:model-end? false
-                                                     :params {:whatever
-                                                              "whenever"}
+                                                     :params {:whatever "whenever"}
                                                      :stopping-definition
                                                      #:automaton-simulation-de.simulation-engine{:doc
                                                                                                  "test"
@@ -79,21 +66,17 @@
                 "should be :automaton-simulation-de.simulation-engine/type"]
                ["should be a keyword"]]]
              (-> (core-schema/validate-data-humanize sut/ordering-schema
-                                                     [[:yop
-                                                       [:machine :product]]])
+                                                     [[:yop [:machine :product]]])
                  :error)))
       (is (= [[["should be :automaton-simulation-de.simulation-engine/field"]
                ["should be a keyword" "invalid type"]]]
-             (-> (core-schema/validate-data-humanize sut/ordering-schema
-                                                     [[::sim-engine/type 12]])
+             (-> (core-schema/validate-data-humanize sut/ordering-schema [[::sim-engine/type 12]])
                  :error))))
     (testing "Valid ordering are accepted."
       (is (= nil (core-schema/validate-data-humanize sut/ordering-schema [])))
       (is (= nil
              (core-schema/validate-data-humanize sut/ordering-schema
-                                                 [[::sim-engine/type
-                                                   [:machine :product]]])))
+                                                 [[::sim-engine/type [:machine :product]]])))
       (is (= nil
              (core-schema/validate-data-humanize sut/ordering-schema
-                                                 [[::sim-engine/field
-                                                   :machine]]))))))
+                                                 [[::sim-engine/field :machine]]))))))

@@ -1,14 +1,11 @@
-(ns
-  automaton-simulation-de.simulation-engine.impl.middleware.request-validation-test
+(ns automaton-simulation-de.simulation-engine.impl.middleware.request-validation-test
   (:require
    #?(:clj [clojure.test :refer [deftest is]]
       :cljs [cljs.test :refer [deftest is] :include-macros true])
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
-   [automaton-simulation-de.simulation-engine.impl.middleware.request-validation
-    :as sut]
+   [automaton-core.adapters.schema                                               :as core-schema]
+   [automaton-simulation-de.simulation-engine                                    :as-alias
+                                                                                 sim-engine]
+   [automaton-simulation-de.simulation-engine.impl.middleware.request-validation :as sut]
    [automaton-simulation-de.simulation-engine.impl.stopping.cause
     :as sim-de-stopping-cause]))
 
@@ -39,9 +36,7 @@
        ::sim-engine/stopping-causes []}
       sut/evaluates))
    "Well form request is not modifying the request.")
-  (is (= nil
-         (core-schema/validate-data-humanize sim-de-stopping-cause/schema
-                                             (sut/evaluates nil))))
+  (is (= nil (core-schema/validate-data-humanize sim-de-stopping-cause/schema (sut/evaluates nil))))
   (is
    (=
     nil
@@ -65,5 +60,4 @@
       sut/evaluates))
    "Well form request is not modifying the request.")
   (is (= nil
-         (core-schema/validate-data-humanize sim-de-stopping-cause/schema
-                                             (sut/evaluates nil)))))
+         (core-schema/validate-data-humanize sim-de-stopping-cause/schema (sut/evaluates nil)))))

@@ -6,8 +6,7 @@
    [automaton-core.adapters.schema                       :as core-schema]
    [automaton-core.utils.sequences                       :as core-sequences]
    [automaton-simulation-de.simulation-engine            :as-alias sim-engine]
-   [automaton-simulation-de.simulation-engine.middleware :as
-                                                         sim-de-middleware]))
+   [automaton-simulation-de.simulation-engine.middleware :as sim-de-middleware]))
 
 (def schema [:sequential sim-de-middleware/schema])
 
@@ -22,10 +21,6 @@
 (defn concat-supp-middlewares
   "Adds `supp-middlewares` in `middlewares` where `::sim-engine/supp-middlewares-insert` stands."
   [middlewares supp-middlewares]
-  (core-sequences/concat-at middlewares
-                            ::sim-engine/supp-middlewares-insert
-                            supp-middlewares))
+  (core-sequences/concat-at middlewares ::sim-engine/supp-middlewares-insert supp-middlewares))
 
-(defn validate
-  [middlewares]
-  (core-schema/validate-data-humanize schema middlewares))
+(defn validate [middlewares] (core-schema/validate-data-humanize schema middlewares))

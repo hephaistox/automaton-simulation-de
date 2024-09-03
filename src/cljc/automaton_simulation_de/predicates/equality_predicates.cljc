@@ -84,33 +84,23 @@
   "Returns pred fn that accepts string.
    Pred will return true if that string ends with `text`.
    If `path` is supplied it will consider value under path for comparison"
-  ([path text]
-   #(let [v (get-path path %)]
-      (when (string? v) (str-includes? v (str text "$")))))
+  ([path text] #(let [v (get-path path %)] (when (string? v) (str-includes? v (str text "$")))))
   ([text] (ends-with?-fn nil text)))
 
 (defn >-fn
-  ([path v]
-   #(let [ov (if (keyword? path) (get % path) (get-in % path))]
-      (clojure.core/> ov v)))
+  ([path v] #(let [ov (if (keyword? path) (get % path) (get-in % path))] (clojure.core/> ov v)))
   ([v] #(clojure.core/> % v)))
 
 (defn >=-fn
-  ([path v]
-   #(let [ov (if (keyword? path) (get % path) (get-in % path))]
-      (clojure.core/>= ov v)))
+  ([path v] #(let [ov (if (keyword? path) (get % path) (get-in % path))] (clojure.core/>= ov v)))
   ([v] #(clojure.core/>= % v)))
 
 (defn <-fn
-  ([path v]
-   #(let [ov (if (keyword? path) (get % path) (get-in % path))]
-      (clojure.core/< ov v)))
+  ([path v] #(let [ov (if (keyword? path) (get % path) (get-in % path))] (clojure.core/< ov v)))
   ([v] #(clojure.core/< % v)))
 
 (defn <=-fn
-  ([path v]
-   #(let [ov (if (keyword? path) (get % path) (get-in % path))]
-      (clojure.core/<= ov v)))
+  ([path v] #(let [ov (if (keyword? path) (get % path) (get-in % path))] (clojure.core/<= ov v)))
   ([v] #(clojure.core/<= % v)))
 
 
@@ -123,9 +113,7 @@
   ([] (lang-schema true))
   ([strict?] (lang-schema strict? :any))
   ([strict? val-type]
-   (if (not strict?)
-     [:cat pred-name [:? path]]
-     [:cat pred-name [:? path] val-type])))
+   (if (not strict?) [:cat pred-name [:? path]] [:cat pred-name [:? path] val-type])))
 
 (defn- lang-valid?
   "Returns true if predicate lang vector for equality predicate is valid"
@@ -140,24 +128,20 @@
    ::sim-pred/one-of? {:doc "compares if one of values is equal to input"
                        :pred-fn one-of?-fn
                        :validation-fn (partial lang-valid?
-                                               (conj (lang-schema false)
-                                                     [:sequential :any]))}
+                                               (conj (lang-schema false) [:sequential :any]))}
    ::sim-pred/is-empty? {:doc "compares if value nil or empty collection"
                          :pred-fn is-empty?-fn
-                         :validation-fn (partial lang-valid?
-                                                 (lang-schema false))}
-   ::sim-pred/contains?
-   {:doc "Returns true if pred-fn input contains value, works for string"
-    :pred-fn contains?-fn
-    :validation-fn lang-valid?}
-   ::sim-pred/starts-with?
-   {:doc "True if pred input starts with text, expects input to be a strings"
-    :pred-fn starts-with?-fn
-    :validation-fn (partial lang-valid? (lang-schema true :string))}
-   ::sim-pred/ends-with?
-   {:doc "True if pred input ends with text expects input to be a string"
-    :pred-fn ends-with?-fn
-    :validation-fn (partial lang-valid? (lang-schema true :string))}
+                         :validation-fn (partial lang-valid? (lang-schema false))}
+   ::sim-pred/contains? {:doc "Returns true if pred-fn input contains value, works for string"
+                         :pred-fn contains?-fn
+                         :validation-fn lang-valid?}
+   ::sim-pred/starts-with? {:doc
+                            "True if pred input starts with text, expects input to be a strings"
+                            :pred-fn starts-with?-fn
+                            :validation-fn (partial lang-valid? (lang-schema true :string))}
+   ::sim-pred/ends-with? {:doc "True if pred input ends with text expects input to be a string"
+                          :pred-fn ends-with?-fn
+                          :validation-fn (partial lang-valid? (lang-schema true :string))}
    ::sim-pred/true? {:doc "Is true?"
                      :pred-fn true?-fn
                      :validation-fn (partial lang-valid? (lang-schema false))}
@@ -166,17 +150,13 @@
                       :validation-fn (partial lang-valid? (lang-schema false))}
    ::sim-pred/> {:doc "Is value greater than.."
                  :pred-fn >-fn
-                 :validation-fn (partial lang-valid?
-                                         (lang-schema true :number))}
+                 :validation-fn (partial lang-valid? (lang-schema true :number))}
    ::sim-pred/< {:doc "Is value lesser than.."
                  :pred-fn <-fn
-                 :validation-fn (partial lang-valid?
-                                         (lang-schema true :number))}
+                 :validation-fn (partial lang-valid? (lang-schema true :number))}
    ::sim-pred/>= {:doc "Is value greater or equal"
                   :pred-fn >=-fn
-                  :validation-fn (partial lang-valid?
-                                          (lang-schema true :number))}
+                  :validation-fn (partial lang-valid? (lang-schema true :number))}
    ::sim-pred/<= {:doc "Is value lesser or equal"
                   :pred-fn <=-fn
-                  :validation-fn (partial lang-valid?
-                                          (lang-schema true :number))}})
+                  :validation-fn (partial lang-valid? (lang-schema true :number))}})

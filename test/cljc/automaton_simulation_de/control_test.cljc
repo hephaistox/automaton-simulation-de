@@ -14,49 +14,39 @@
 
 (defn- snapshot-it-nb
   [control-response]
-  (get-in control-response
-          [::sut/response ::sim-engine/snapshot ::sim-engine/iteration]))
+  (get-in control-response [::sut/response ::sim-engine/snapshot ::sim-engine/iteration]))
 
 (deftest build-rendering-state-test
   (testing "Basic cases to build state"
-    (is (some? (sut/build-rendering-state {:computation
-                                           (sut/make-computation {} :direct)})))
-    (is (number? (:play-delay @(sut/build-rendering-state
-                                {:computation
-                                 (sut/make-computation {} :direct)})))))
+    (is (some? (sut/build-rendering-state {:computation (sut/make-computation {} :direct)})))
+    (is (number? (:play-delay @(sut/build-rendering-state {:computation
+                                                           (sut/make-computation {} :direct)})))))
   (testing "Nil returned when initial-datat is incorrect"
     (is (nil? (sut/build-rendering-state {})))
     (is (nil? (sut/build-rendering-state nil)))
     (is (nil? (sut/build-rendering-state [])))
-    (is (nil? (sut/build-rendering-state
-               {:to-much-usless-data "whenever"
-                :computation (sut/make-computation {} :direct)})))))
+    (is (nil? (sut/build-rendering-state {:to-much-usless-data "whenever"
+                                          :computation (sut/make-computation {} :direct)})))))
 
-(defn make-direct-computation
-  [model & args]
-  (apply sut/make-computation model :direct args))
+(defn make-direct-computation [model & args] (apply sut/make-computation model :direct args))
 
-(defn make-chunk-computation
-  [model & args]
-  (apply sut/make-computation model :chunk args))
+(defn make-chunk-computation [model & args] (apply sut/make-computation model :chunk args))
 
 (defn- create-state
   []
-  (sut/build-rendering-state {:computation (make-direct-computation
-                                            (sim-demo-control/model))}))
+  (sut/build-rendering-state {:computation (make-direct-computation (sim-demo-control/model))}))
 
 
 
 (defn- create-endless-sim-state
   []
-  (sut/build-rendering-state {:computation (make-direct-computation
-                                            (sim-demo-control/model-infinite)
-                                            1000)}))
+  (sut/build-rendering-state {:computation
+                              (make-direct-computation (sim-demo-control/model-infinite) 1000)}))
 
 (defn- create-early-stop-state
   []
-  (sut/build-rendering-state
-   {:computation (make-direct-computation (sim-demo-control/model-early-end))}))
+  (sut/build-rendering-state {:computation (make-direct-computation
+                                            (sim-demo-control/model-early-end))}))
 
 (deftest move-x!-test
   (let [state (create-state)]
@@ -70,8 +60,7 @@
       (sut/move-x! state 1)
       (sut/move-x! state 1)
       (is (= 6 (state-it-nb state)))
-      (is (= (state-it-nb state)
-             (snapshot-it-nb (sut/move-x! (create-state) 6)))))
+      (is (= (state-it-nb state) (snapshot-it-nb (sut/move-x! (create-state) 6)))))
     (testing "Moving 1 iteration backward"
       (sut/move-x! state -1)
       (is (= 5 (state-it-nb state)))
@@ -83,8 +72,7 @@
       (is (= 1 (state-it-nb state)))
       (let [new-state (create-state)
             _set-state-to-6-it (sut/move-x! new-state 5)]
-        (is (= (state-it-nb state)
-               (snapshot-it-nb (sut/move-x! new-state -5))))))
+        (is (= (state-it-nb state) (snapshot-it-nb (sut/move-x! new-state -5))))))
     (testing "Moving multiple iterations"
       (let [new-state (create-state)
             random-move (rand-int 10)]
@@ -105,7 +93,7 @@
       (sut/move-x! state 1)
       (sut/move-x! state 1)
       (sut/move-x! state 1)
-      (is (= 32 (state-it-nb state)))
+      (is (= 31 (state-it-nb state)))
       (is (= 1 (snapshot-it-nb (sut/move-x! state -50))))
       (is (= 6 (snapshot-it-nb (sut/move-x! state 5)))))))
 
@@ -126,20 +114,16 @@
 (deftest fast-foward?-test
   (testing "Basic usage"
     (let [state (create-state)] (is (= true (sut/fast-forward? state))))
-    (let [state (create-endless-sim-state)]
-      (is (= nil (sut/fast-forward? state))))))
+    (let [state (create-endless-sim-state)] (is (= nil (sut/fast-forward? state))))))
 
 (deftest fast-forward!-test
-  (testing
-    "If it didn't reach model-end but there is no next-possible it returns last iteration"
-    (let [state (create-state)]
-      (is (= 32 (snapshot-it-nb (sut/fast-forward! state)))))
+  (testing "If it didn't reach model-end but there is no next-possible it returns last iteration"
+    (let [state (create-state)] (is (= 31 (snapshot-it-nb (sut/fast-forward! state)))))
     (testing
       "Here is a question, should it work when there is no model-end? Because in case of truly endless one we will need to secure API to not run endlessly (maybe some timeout?) and in case of simulation that has an end and no model-end, does it make sense to do it?"
       (let [state (create-endless-sim-state)]
         (is (= 1000 (snapshot-it-nb (sut/fast-forward! state))))))
-    (testing
-      "If there is a stop in simulation that's not model-end? it should continue"
+    (testing "If there is a stop in simulation that's not model-end? it should continue"
       (let [state (create-early-stop-state)]
         (sut/move-x! state 10)
         (sut/rewind! state)
@@ -169,8 +153,7 @@
     (is (= nil (state-it-nb state)))
     (sim-de-rendering-state/set state
                                 :computation
-                                (make-direct-computation
-                                 (sim-demo-control/model)))
+                                (make-direct-computation (sim-demo-control/model)))
     (sut/move-x! state 1)
     (is (= 1 (state-it-nb state)))
     (sut/move-x! state 3)
@@ -181,12 +164,10 @@
     (is (= 4 (state-it-nb state)))
     (sim-de-rendering-state/set state
                                 :computation
-                                (make-direct-computation
-                                 (sim-demo-control/model)))
+                                (make-direct-computation (sim-demo-control/model)))
     (sim-de-rendering-state/set state
                                 :computation
-                                (make-chunk-computation (sim-demo-control/model)
-                                                        5))
+                                (make-chunk-computation (sim-demo-control/model) 5))
     (is (= 4 (state-it-nb state)))
     (sut/move-x! state 1)
     (is (= 5 (state-it-nb state)))
@@ -197,9 +178,8 @@
     (is (= 5 (state-it-nb state)))
     (sim-de-rendering-state/set state
                                 :computation
-                                (make-chunk-computation (sim-demo-control/model)
-                                                        5))
+                                (make-chunk-computation (sim-demo-control/model) 5))
     (sut/rewind! state)
     (is (= 1 (state-it-nb state)))
     (sut/fast-forward! state)
-    (is (= 32 (state-it-nb state)))))
+    (is (= 31 (state-it-nb state)))))

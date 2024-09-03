@@ -24,8 +24,7 @@
                assoc
                consumption-uuid
                #:automaton-simulation-de.rc{:seizing-event seizing-event
-                                            :consumed-quantity
-                                            consumed-quantity})])
+                                            :consumed-quantity consumed-quantity})])
     [nil resource]))
 
 (defn free
@@ -35,6 +34,4 @@
   (update resource
           ::sim-rc/currently-consuming
           (fn [currently-consuming]
-            (if (nil? currently-consuming)
-              {}
-              (dissoc currently-consuming consumption-uuid)))))
+            (if (nil? currently-consuming) {} (dissoc currently-consuming consumption-uuid)))))

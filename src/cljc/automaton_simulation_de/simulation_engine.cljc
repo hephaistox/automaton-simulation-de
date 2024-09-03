@@ -7,20 +7,13 @@ Discrete event simulation is modeling a real system with discrete events.
   (:require
    [automaton-core.adapters.schema                            :as core-schema]
    [automaton-simulation-de.simulation-engine.impl.model      :as sim-de-model]
-   [automaton-simulation-de.simulation-engine.impl.model-data :as
-                                                              sim-de-model-data]
-   [automaton-simulation-de.simulation-engine.impl.registry   :as
-                                                              sim-de-registry]
-   [automaton-simulation-de.simulation-engine.impl.scheduler  :as
-                                                              sim-de-scheduler]
-   [automaton-simulation-de.simulation-engine.response        :as
-                                                              sim-de-response]))
+   [automaton-simulation-de.simulation-engine.impl.model-data :as sim-de-model-data]
+   [automaton-simulation-de.simulation-engine.impl.registry   :as sim-de-registry]
+   [automaton-simulation-de.simulation-engine.impl.scheduler  :as sim-de-scheduler]
+   [automaton-simulation-de.simulation-engine.response        :as sim-de-response]))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn registries
-  "Returns the `built-in` registries of simulation-de."
-  []
-  (sim-de-registry/build))
+(defn registries "Returns the `built-in` registries of simulation-de." [] (sim-de-registry/build))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-registry
@@ -50,15 +43,13 @@ Discrete event simulation is modeling a real system with discrete events.
 (defn validate-middleware-data
   "Middleware data are validated."
   [middleware-data _registries]
-  (core-schema/validate-data-humanize sim-de-model-data/middlewares-schema
-                                      middleware-data))
+  (core-schema/validate-data-humanize sim-de-model-data/middlewares-schema middleware-data))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-stopping-criteria-data
   [stopping-criteria-data _registries]
-  (core-schema/validate-data-humanize
-   sim-de-model-data/stopping-criterias-schema
-   stopping-criteria-data))
+  (core-schema/validate-data-humanize sim-de-model-data/stopping-criterias-schema
+                                      stopping-criteria-data))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn scheduler
@@ -78,23 +69,16 @@ Discrete event simulation is modeling a real system with discrete events.
      :as model}
     scheduler-middlewares
     scheduler-stopping-criterias]
-   (scheduler model
-              scheduler-middlewares
-              scheduler-stopping-criterias
-              initial-snapshot))
+   (scheduler model scheduler-middlewares scheduler-stopping-criterias initial-snapshot))
   ([model scheduler-middlewares scheduler-stopping-criterias snapshot]
-   (or (when-not (sim-de-scheduler/invalid-inputs model
-                                                  scheduler-middlewares
-                                                  scheduler-stopping-criterias
-                                                  snapshot)
-         (sim-de-scheduler/scheduler model
-                                     scheduler-middlewares
-                                     scheduler-stopping-criterias
-                                     snapshot))
-       (sim-de-scheduler/invalid-inputs model
-                                        scheduler-middlewares
-                                        scheduler-stopping-criterias
-                                        snapshot))))
+   (when-not (sim-de-scheduler/invalid-inputs model
+                                              scheduler-middlewares
+                                              scheduler-stopping-criterias
+                                              snapshot)
+     (sim-de-scheduler/scheduler model
+                                 scheduler-middlewares
+                                 scheduler-stopping-criterias
+                                 snapshot))))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn extract-snapshot

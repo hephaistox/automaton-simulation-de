@@ -1,5 +1,4 @@
-(ns
-  automaton-simulation-de.simulation-engine.impl.built-in-sd.request-validation
+(ns automaton-simulation-de.simulation-engine.impl.built-in-sd.request-validation
   "Stops when the request is not valid."
   (:require
    [automaton-simulation-de.simulation-engine :as-alias sim-engine]))

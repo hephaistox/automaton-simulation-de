@@ -1,14 +1,11 @@
-(ns
-  automaton-simulation-de.simulation-engine.impl.middleware.response-validation-test
+(ns automaton-simulation-de.simulation-engine.impl.middleware.response-validation-test
   (:require
    #?(:clj [clojure.test :refer [deftest is]]
       :cljs [cljs.test :refer [deftest is] :include-macros true])
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
-   [automaton-simulation-de.simulation-engine.impl.middleware.response-validation
-    :as sut]
+   [automaton-core.adapters.schema                                                :as core-schema]
+   [automaton-simulation-de.simulation-engine                                     :as-alias
+                                                                                  sim-engine]
+   [automaton-simulation-de.simulation-engine.impl.middleware.response-validation :as sut]
    [automaton-simulation-de.simulation-engine.impl.stopping.cause
     :as sim-de-stopping-cause]))
 
@@ -23,8 +20,7 @@
     (->
       #:automaton-simulation-de.simulation-engine{:stopping-causes []
                                                   :snapshot
-                                                  #:automaton-simulation-de.simulation-engine{:id
-                                                                                              1
+                                                  #:automaton-simulation-de.simulation-engine{:id 1
                                                                                               :iteration
                                                                                               1
                                                                                               :date
@@ -41,11 +37,10 @@
                                                                                                                                            2}]}}
       (sut/evaluates event-stub)))
    "Well form response returns `nil`.")
-  (is
-   (= nil
-      (core-schema/validate-data-humanize sim-de-stopping-cause/schema
-                                          (sut/evaluates nil event-stub)))
-   "When detecting an issue, evaluates returns a map complying to `stopping-cause schema`."))
+  (is (= nil
+         (core-schema/validate-data-humanize sim-de-stopping-cause/schema
+                                             (sut/evaluates nil event-stub)))
+      "When detecting an issue, evaluates returns a map complying to `stopping-cause schema`."))
 
 (deftest wrap-response-test
   (is
