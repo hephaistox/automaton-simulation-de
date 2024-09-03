@@ -4,10 +4,8 @@
    This namespace is about managing that language"
   (:require
    [automaton-core.adapters.schema                         :as core-schema]
-   [automaton-simulation-de.predicates.composed-predicates :as
-                                                           sim-pred-composed]
-   [automaton-simulation-de.predicates.equality-predicates :as
-                                                           sim-pred-equality]
+   [automaton-simulation-de.predicates.composed-predicates :as sim-pred-composed]
+   [automaton-simulation-de.predicates.equality-predicates :as sim-pred-equality]
    [clojure.walk                                           :as walk]))
 
 (def pred-lang-schema
@@ -47,8 +45,7 @@
   [reg pred]
   (try (clojure.walk/prewalk (fn [el]
                                (cond
-                                 (and (is-predicate? reg el)
-                                      (not (predicate-valid? reg pred)))
+                                 (and (is-predicate? reg el) (not (predicate-valid? reg pred)))
                                  (throw (ex-info "Predicate is not valid"
                                                  {:pred el
                                                   :reg reg}))
@@ -66,22 +63,20 @@
   "Translates `pred` vector language into a function. Expects `reg` map containing predicate name as keys with values containing a function under :pred-fn"
   ([pred] (predicate-lang->predicate-fn predicates-registry pred))
   ([reg pred]
-   (clojure.walk/postwalk
-    (fn [el]
-      (cond
-        (keyword? el) (if-let [pred-fn (get-in reg [el :pred-fn])]
-                        pred-fn
-                        el)
-        (and (vector? el) (fn? (first el))) (apply (first el) (rest el))
-        :else el))
-    pred)))
+   (clojure.walk/postwalk (fn [el]
+                            (cond
+                              (keyword? el) (if-let [pred-fn (get-in reg [el :pred-fn])]
+                                              pred-fn
+                                              el)
+                              (and (vector? el) (fn? (first el))) (apply (first el) (rest el))
+                              :else el))
+                          pred)))
 
 (defn predicate-lang->pred-fn-detailed
   "Turns predicate query language into a function"
   ([pred] (predicate-lang->pred-fn-detailed predicates-registry pred))
   ([reg pred]
-   (if-let [invalid-pred-schema
-            (core-schema/validate-data-humanize pred-lang-schema pred)]
+   (if-let [invalid-pred-schema (core-schema/validate-data-humanize pred-lang-schema pred)]
      {:msg "Predicate is not matching a schema"
       :error invalid-pred-schema}
      (if-let [invalid-pred-query (predicate-validation reg pred)]

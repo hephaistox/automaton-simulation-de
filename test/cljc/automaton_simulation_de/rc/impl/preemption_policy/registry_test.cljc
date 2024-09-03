@@ -7,5 +7,4 @@
 
 (deftest registry-test
   (testing "Validate registry"
-    (is (nil? (core-schema/validate-data-humanize (sut/schema)
-                                                  (sut/registry))))))
+    (is (nil? (core-schema/validate-data-humanize (sut/schema) (sut/registry))))))

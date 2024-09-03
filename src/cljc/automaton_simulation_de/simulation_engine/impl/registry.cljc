@@ -1,8 +1,8 @@
 (ns automaton-simulation-de.simulation-engine.impl.registry
   "Gathers the registries of a simulation."
   (:require
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
+   [automaton-simulation-de.simulation-engine                                   :as-alias
+                                                                                sim-engine]
    [automaton-simulation-de.simulation-engine.impl.event-registry
     :as sim-de-event-registry]
    [automaton-simulation-de.simulation-engine.impl.middleware.registry
@@ -21,10 +21,7 @@
 
 (defn build
   []
-  #:automaton-simulation-de.simulation-engine{:stopping
-                                              (sim-de-stopping-registry/build)
-                                              :middleware
-                                              (sim-de-middleware-registry/build)
+  #:automaton-simulation-de.simulation-engine{:stopping (sim-de-stopping-registry/build)
+                                              :middleware (sim-de-middleware-registry/build)
                                               :event {}
-                                              :ordering
-                                              (sim-de-ordering-registry/build)})
+                                              :ordering (sim-de-ordering-registry/build)})

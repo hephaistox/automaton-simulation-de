@@ -90,8 +90,7 @@
                 (mapv ::sim-engine/type))))))
 
 (deftest data-to-fn-test
-  (is (= nil (sut/data-to-fn [:non-existing-one]))
-      "Invalid ordering returns `nil`.")
+  (is (= nil (sut/data-to-fn [:non-existing-one])) "Invalid ordering returns `nil`.")
   (is (= 666
          ((sut/data-to-fn [::sim-engine/field ::sim-engine/product])
           #:automaton-simulation-de.simulation-engine{:type :product

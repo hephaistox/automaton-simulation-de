@@ -2,14 +2,10 @@
   (:require
    #?(:clj [clojure.test :refer [deftest is testing]]
       :cljs [cljs.test :refer [deftest is testing] :include-macros true])
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
-   [automaton-simulation-de.simulation-engine.impl.stopping-definition.now
-    :as sim-de-sc-now]
-   [automaton-simulation-de.simulation-engine.impl.stopping.criteria
-    :as sut]))
+   [automaton-core.adapters.schema                                         :as core-schema]
+   [automaton-simulation-de.simulation-engine                              :as-alias sim-engine]
+   [automaton-simulation-de.simulation-engine.impl.stopping-definition.now :as sim-de-sc-now]
+   [automaton-simulation-de.simulation-engine.impl.stopping.criteria       :as sut]))
 
 (deftest schema-test (is (nil? (core-schema/validate-humanize sut/schema))))
 
@@ -35,16 +31,13 @@
                                                                  :date 1
                                                                  :state {}
                                                                  :past-events []
-                                                                 :future-events
-                                                                 []})
+                                                                 :future-events []})
       ::sim-engine/stopping-criteria))
    "Stopping criteria `stop-now` returns a stopping criteria"))
 
 (deftest out-of-model-test
-  (is (= #:automaton-simulation-de.simulation-engine{:model-end? false}
-         (sut/out-of-model nil)))
-  (is (= #:automaton-simulation-de.simulation-engine{:model-end? true}
-         (sut/model-end nil))))
+  (is (= #:automaton-simulation-de.simulation-engine{:model-end? false} (sut/out-of-model nil)))
+  (is (= #:automaton-simulation-de.simulation-engine{:model-end? true} (sut/model-end nil))))
 
 (deftest api-data-to-entity-test
   (testing "Wrong type is skipped."
@@ -54,13 +47,11 @@
     (is (nil? (sut/api-data-to-entity {} :a)))
     (is (nil? (sut/api-data-to-entity {} [:a]))))
   (is (= #:automaton-simulation-de.simulation-engine{:params {}
-                                                     :stopping-definition
-                                                     {:definition :stub}}
+                                                     :stopping-definition {:definition :stub}}
          (sut/api-data-to-entity {:good {:definition :stub}} :good))
       "Keyword is understood as a stopping-criteria with no params.")
   (is (= #:automaton-simulation-de.simulation-engine{:params {:foo :bar}
-                                                     :stopping-definition
-                                                     {:definition :stub}}
+                                                     :stopping-definition {:definition :stub}}
          (sut/api-data-to-entity {:good {:definition :stub}}
                                  [:good {:foo :bar}]))
       "A vector of keyword and map is turned into a stopping-criteria"))

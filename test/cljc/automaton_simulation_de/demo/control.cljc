@@ -34,21 +34,19 @@
                                                       :m4 {:transportation []
                                                            :input []
                                                            :process nil}}
-                                              :future-events
-                                              (-> future-events
-                                                  (concat
-                                                   [{::sim-engine/type :MA
-                                                     ::sim-engine/date date
-                                                     ::product :p1
-                                                     ::machine :m1}
-                                                    {::sim-engine/type :MA
-                                                     ::sim-engine/date date
-                                                     ::product :p2
-                                                     ::machine :m1}
-                                                    {::sim-engine/type :MA
-                                                     ::sim-engine/date date
-                                                     ::product :p3
-                                                     ::machine :m1}]))})
+                                              :future-events (-> future-events
+                                                                 (concat [{::sim-engine/type :MA
+                                                                           ::sim-engine/date date
+                                                                           ::product :p1
+                                                                           ::machine :m1}
+                                                                          {::sim-engine/type :MA
+                                                                           ::sim-engine/date date
+                                                                           ::product :p2
+                                                                           ::machine :m1}
+                                                                          {::sim-engine/type :MA
+                                                                           ::sim-engine/date date
+                                                                           ::product :p3
+                                                                           ::machine :m1}]))})
 
 (defn machine-arrive
   "Product `p` is added on machine `m` input buffer at date `d`
@@ -56,23 +54,18 @@
   [{:keys [::sim-engine/date ::product ::machine]} state future-events]
   #:automaton-simulation-de.simulation-engine{:state
                                               (-> state
-                                                  (update-in
-                                                   [machine :input]
-                                                   (fn [list-products]
-                                                     (vec (conj list-products
-                                                                product))))
-                                                  (update-in
-                                                   [machine :transportation]
-                                                   (fn [list-products]
-                                                     (vec (remove
-                                                           #{product}
-                                                           list-products)))))
-                                              :future-events
-                                              (->> future-events
-                                                   (cons {::sim-engine/type :MP
-                                                          ::sim-engine/date date
-                                                          ::product product
-                                                          ::machine machine}))})
+                                                  (update-in [machine :input]
+                                                             (fn [list-products]
+                                                               (vec (conj list-products product))))
+                                                  (update-in [machine :transportation]
+                                                             (fn [list-products]
+                                                               (vec (remove #{product}
+                                                                            list-products)))))
+                                              :future-events (->> future-events
+                                                                  (cons {::sim-engine/type :MP
+                                                                         ::sim-engine/date date
+                                                                         ::product product
+                                                                         ::machine machine}))})
 
 (defn machine-process
   [{::sim-engine/keys [date]
@@ -80,30 +73,23 @@
    state
    future-events]
   (let [new-date (+ date (process-time machine))]
-    #:automaton-simulation-de.simulation-engine{:state
-                                                (-> state
-                                                    (update-in
-                                                     [machine :input]
-                                                     (fn [list-products]
-                                                       (vec (remove
-                                                             #{product}
-                                                             list-products))))
-                                                    (assoc-in [machine :process]
-                                                              product))
+    #:automaton-simulation-de.simulation-engine{:state (-> state
+                                                           (update-in [machine :input]
+                                                                      (fn [list-products]
+                                                                        (vec (remove
+                                                                              #{product}
+                                                                              list-products))))
+                                                           (assoc-in [machine :process] product))
                                                 :future-events
-                                                (->
-                                                  future-events
-                                                  (conj {::sim-engine/type :MT
-                                                         ::sim-engine/date
-                                                         new-date
-                                                         ::product product
-                                                         ::machine machine})
-                                                  (sim-de-event/postpone-events
-                                                   (fn [{::sim-engine/keys
-                                                         [type machine]}]
-                                                     (and (= machine machine)
-                                                          (= type :MP)))
-                                                   new-date))}))
+                                                (-> future-events
+                                                    (conj {::sim-engine/type :MT
+                                                           ::sim-engine/date new-date
+                                                           ::product product
+                                                           ::machine machine})
+                                                    (sim-de-event/postpone-events
+                                                     (fn [{::sim-engine/keys [type machine]}]
+                                                       (and (= machine machine) (= type :MP)))
+                                                     new-date))}))
 
 (defn machine-terminate
   [{::sim-engine/keys [date]
@@ -114,25 +100,18 @@
         next-m (rand-nth (get routing machine))]
     #:automaton-simulation-de.simulation-engine{:state
                                                 (cond-> state
-                                                  true (assoc-in [machine
-                                                                  :process]
-                                                        nil)
+                                                  true (assoc-in [machine :process] nil)
                                                   (some? next-m)
-                                                  (update-in [next-m
-                                                              :transportation]
-                                                             conj
-                                                             product))
+                                                  (update-in [next-m :transportation] conj product))
                                                 :future-events
                                                 (if next-m
                                                   (cons {::sim-engine/type :MA
-                                                         ::sim-engine/date
-                                                         transportation-end-time
+                                                         ::sim-engine/date transportation-end-time
                                                          ::product product
                                                          ::machine next-m}
                                                         future-events)
                                                   (cons {::sim-engine/type :PT
-                                                         ::sim-engine/date
-                                                         transportation-end-time
+                                                         ::sim-engine/date transportation-end-time
                                                          ::product product}
                                                         future-events))}))
 
@@ -143,16 +122,15 @@
 
 (defn infinite-part-terminate
   [{::sim-engine/keys [date]
-    ::keys [product machine]}
+    ::keys [product _machine]}
    state
    future-events]
   #:automaton-simulation-de.simulation-engine{:state state
-                                              :future-events
-                                              (-> future-events
-                                                  (conj {::sim-engine/type :IN
-                                                         ::sim-engine/date date
-                                                         ::product product
-                                                         ::machine machine}))})
+                                              :future-events (-> future-events
+                                                                 (conj {::sim-engine/type :MA
+                                                                        ::sim-engine/date date
+                                                                        ::product product
+                                                                        ::machine :m1}))})
 
 (defn registries
   ([] (registries false))
@@ -160,24 +138,30 @@
    (-> (sim-engine/registries)
        (update ::sim-engine/event
                merge
-               {:IN evt-init
-                :MA machine-arrive
+               {:MA machine-arrive
                 :MP machine-process
                 :MT machine-terminate
                 :PT (if infinite? infinite-part-terminate part-terminate)})
        sim-de-control/wrap-registry)))
 
 (def model-data
-  #:automaton-simulation-de.simulation-engine{:initial-event-type :IN
-                                              :initial-bucket 0
-                                              :middlewares []
-                                              :ordering
-                                              [[::sim-engine/field
-                                                ::sim-engine/date]
-                                               [::sim-engine/type
-                                                [:IN :MA :MP :MT :PT]]
-                                               [::sim-engine/field ::machine]
-                                               [::sim-engine/field ::product]]
+  #:automaton-simulation-de.simulation-engine{:middlewares []
+                                              :ordering [[::sim-engine/field ::sim-engine/date]
+                                                         [::sim-engine/type [:MA :MP :MT :PT]]
+                                                         [::sim-engine/field ::machine]
+                                                         [::sim-engine/field ::product]]
+                                              :future-events [{::sim-engine/type :MA
+                                                               ::sim-engine/date 0
+                                                               ::product :p1
+                                                               ::machine :m1}
+                                                              {::sim-engine/type :MA
+                                                               ::sim-engine/date 0
+                                                               ::product :p2
+                                                               ::machine :m1}
+                                                              {::sim-engine/type :MA
+                                                               ::sim-engine/date 0
+                                                               ::product :p3
+                                                               ::machine :m1}]
                                               :stopping-criterias []})
 
 (defn model
@@ -185,8 +169,7 @@
   (sim-engine/build-model (update model-data
                                   ::sim-engine/stopping-criterias
                                   conj
-                                  [::sim-engine/iteration-nth {::sim-engine/n
-                                                               1000}])
+                                  [::sim-engine/iteration-nth {::sim-engine/n 1000}])
                           (registries)))
 
 (defn model-infinite [] (sim-engine/build-model model-data (registries true)))
@@ -196,6 +179,5 @@
   (sim-engine/build-model (update model-data
                                   ::sim-engine/stopping-criterias
                                   conj
-                                  [::sim-engine/iteration-nth {::sim-engine/n
-                                                               20}])
+                                  [::sim-engine/iteration-nth {::sim-engine/n 20}])
                           (registries)))

@@ -128,34 +128,33 @@
                                     :machine :m4}]}
       (-> [::sim-pred/not [::sim-pred/is-empty? :processing]]
           sim-pred/predicate-lang->predicate-fn
-          (sut/keep-snapshot-events-based-state
-           :machine
-           {::sim-engine/state {:m1 {:id :m1
-                                     :name "BR500"}
-                                :m2 {:id :m2
-                                     :name "MX5009"}
-                                :m3 {:id :m3
-                                     :name "MX-TURBO-5892"}
-                                :m4 {:id :m4
-                                     :name "MA4"
-                                     :processing :p2}}
-            ::sim-engine/date 0
-            ::sim-engine/past-events [{:product :p1
-                                       :first :me
-                                       :machine :m1}
-                                      {:product :p2
-                                       :machine :m1}
-                                      {:product :p1
-                                       :second :me
-                                       :machine :m2}
-                                      {:whatever :other
-                                       :machine :m4}
-                                      {:more "whatever"
-                                       :machine :m1}]
-            ::sim-engine/future-events [{:product :p1
-                                         :machine :m3}
-                                        {:product :p1
-                                         :machine :m4}]})))
+          (sut/keep-snapshot-events-based-state :machine
+                                                {::sim-engine/state {:m1 {:id :m1
+                                                                          :name "BR500"}
+                                                                     :m2 {:id :m2
+                                                                          :name "MX5009"}
+                                                                     :m3 {:id :m3
+                                                                          :name "MX-TURBO-5892"}
+                                                                     :m4 {:id :m4
+                                                                          :name "MA4"
+                                                                          :processing :p2}}
+                                                 ::sim-engine/date 0
+                                                 ::sim-engine/past-events [{:product :p1
+                                                                            :first :me
+                                                                            :machine :m1}
+                                                                           {:product :p2
+                                                                            :machine :m1}
+                                                                           {:product :p1
+                                                                            :second :me
+                                                                            :machine :m2}
+                                                                           {:whatever :other
+                                                                            :machine :m4}
+                                                                           {:more "whatever"
+                                                                            :machine :m1}]
+                                                 ::sim-engine/future-events [{:product :p1
+                                                                              :machine :m3}
+                                                                             {:product :p1
+                                                                              :machine :m4}]})))
      "Filter state to only consist of machines that have somethin in :processing in their state and filter all events regarding them")
     (is
      (=
@@ -171,9 +170,7 @@
        ::sim-engine/future-events [{:product :p1
                                     :machine :m3
                                     :important true}]}
-      (-> [::sim-pred/or
-           [::sim-pred/equal? :color "blue"]
-           [::sim-pred/true? :important]]
+      (-> [::sim-pred/or [::sim-pred/equal? :color "blue"] [::sim-pred/true? :important]]
           sim-pred/predicate-lang->predicate-fn
           (sut/keep-snapshot
            {::sim-engine/state {:m1 {:id :m1
@@ -212,35 +209,34 @@
    (=
     [{::sim-engine/context {::sim-engine/iteration 1
                             ::sim-engine/n 1}
-      ::sim-engine/stopping-criteria
-      {::sim-engine/params {::sim-engine/n 1}
-       ::sim-engine/stopping-definition
-       {::sim-engine/doc "Stops when the iteration `n` is reached."
-        ::sim-engine/id ::sim-engine/iteration-nth
-        ::sim-engine/next-possible? true
-        ::sim-engine/stopping-evaluation nil}
-       ::sim-engine/model-end? false}
+      ::sim-engine/stopping-criteria {::sim-engine/params {::sim-engine/n 1}
+                                      ::sim-engine/stopping-definition
+                                      {::sim-engine/doc "Stops when the iteration `n` is reached."
+                                       ::sim-engine/id ::sim-engine/iteration-nth
+                                       ::sim-engine/next-possible? true
+                                       ::sim-engine/stopping-evaluation nil}
+                                      ::sim-engine/model-end? false}
       ::sim-engine/current-event {::sim-engine/type :IN
                                   ::sim-engine/date 0}}]
     (-> [::sim-pred/equal? [::sim-engine/id] ::sim-engine/iteration-nth]
         sim-pred/predicate-lang->predicate-fn
         (sut/keep-stopping-causes-by-stopping-definition
-         [{::sim-engine/stopping-criteria
-           {::sim-engine/stopping-definition
-            {::sim-engine/id ::sim-engine/no-future-events
-             ::sim-engine/next-possible? false
-             ::sim-engine/doc "Stops when no future events exists anymore."}}
+         [{::sim-engine/stopping-criteria {::sim-engine/stopping-definition
+                                           {::sim-engine/id ::sim-engine/no-future-events
+                                            ::sim-engine/next-possible? false
+                                            ::sim-engine/doc
+                                            "Stops when no future events exists anymore."}}
            ::sim-engine/current-event nil}
           {::sim-engine/context {::sim-engine/iteration 1
                                  ::sim-engine/n 1}
-           ::sim-engine/stopping-criteria
-           {::sim-engine/params {::sim-engine/n 1}
-            ::sim-engine/stopping-definition
-            {::sim-engine/doc "Stops when the iteration `n` is reached."
-             ::sim-engine/id ::sim-engine/iteration-nth
-             ::sim-engine/next-possible? true
-             ::sim-engine/stopping-evaluation nil}
-            ::sim-engine/model-end? false}
+           ::sim-engine/stopping-criteria {::sim-engine/params {::sim-engine/n 1}
+                                           ::sim-engine/stopping-definition
+                                           {::sim-engine/doc
+                                            "Stops when the iteration `n` is reached."
+                                            ::sim-engine/id ::sim-engine/iteration-nth
+                                            ::sim-engine/next-possible? true
+                                            ::sim-engine/stopping-evaluation nil}
+                                           ::sim-engine/model-end? false}
            ::sim-engine/current-event {::sim-engine/type :IN
                                        ::sim-engine/date 0}}])))
    "stopping causes are filtered to contain only iteration-nth stopping-cause")
@@ -248,54 +244,52 @@
          (-> [::sim-pred/one-of? :processing [:p1 :p2]]
              sim-pred/predicate-lang->predicate-fn
              (sut/keep-stopping-causes-by-model-end
-              [{::sim-engine/stopping-criteria
-                {::sim-engine/stopping-definition
-                 {::sim-engine/id ::sim-engine/no-future-events
-                  ::sim-engine/next-possible? false
-                  ::sim-engine/doc
-                  "Stops when no future events exists anymore."}}
+              [{::sim-engine/stopping-criteria {::sim-engine/stopping-definition
+                                                {::sim-engine/id ::sim-engine/no-future-events
+                                                 ::sim-engine/next-possible? false
+                                                 ::sim-engine/doc
+                                                 "Stops when no future events exists anymore."}}
                 ::sim-engine/current-event nil}
                {::sim-engine/context {::sim-engine/iteration 1
                                       ::sim-engine/n 1}
-                ::sim-engine/stopping-criteria
-                {::sim-engine/params {::sim-engine/n 1}
-                 ::sim-engine/stopping-definition
-                 {::sim-engine/doc "Stops when the iteration `n` is reached."
-                  ::sim-engine/id ::sim-engine/iteration-nth
-                  ::sim-engine/next-possible? true
-                  ::sim-engine/stopping-evaluation nil}
-                 ::sim-engine/model-end? false}
+                ::sim-engine/stopping-criteria {::sim-engine/params {::sim-engine/n 1}
+                                                ::sim-engine/stopping-definition
+                                                {::sim-engine/doc
+                                                 "Stops when the iteration `n` is reached."
+                                                 ::sim-engine/id ::sim-engine/iteration-nth
+                                                 ::sim-engine/next-possible? true
+                                                 ::sim-engine/stopping-evaluation nil}
+                                                ::sim-engine/model-end? false}
                 ::sim-engine/current-event {::sim-engine/type :IN
                                             ::sim-engine/date 0}}])))
       "No model-end returns empty array")
-  (is (= [{::sim-engine/stopping-criteria
-           {::sim-engine/stopping-definition
-            {::sim-engine/id ::sim-engine/no-future-events
-             ::sim-engine/next-possible? false
-             ::sim-engine/doc "Stops when no future events exists anymore."}
-            ::sim-engine/model-end? true}
+  (is (= [{::sim-engine/stopping-criteria {::sim-engine/stopping-definition
+                                           {::sim-engine/id ::sim-engine/no-future-events
+                                            ::sim-engine/next-possible? false
+                                            ::sim-engine/doc
+                                            "Stops when no future events exists anymore."}
+                                           ::sim-engine/model-end? true}
            ::sim-engine/current-event nil}]
          (-> [::sim-pred/true?]
              sim-pred/predicate-lang->predicate-fn
              (sut/keep-stopping-causes-by-model-end
-              [{::sim-engine/stopping-criteria
-                {::sim-engine/stopping-definition
-                 {::sim-engine/id ::sim-engine/no-future-events
-                  ::sim-engine/next-possible? false
-                  ::sim-engine/doc
-                  "Stops when no future events exists anymore."}
-                 ::sim-engine/model-end? true}
+              [{::sim-engine/stopping-criteria {::sim-engine/stopping-definition
+                                                {::sim-engine/id ::sim-engine/no-future-events
+                                                 ::sim-engine/next-possible? false
+                                                 ::sim-engine/doc
+                                                 "Stops when no future events exists anymore."}
+                                                ::sim-engine/model-end? true}
                 ::sim-engine/current-event nil}
                {::sim-engine/context {::sim-engine/iteration 1
                                       ::sim-engine/n 1}
-                ::sim-engine/stopping-criteria
-                {::sim-engine/params {::sim-engine/n 1}
-                 ::sim-engine/stopping-definition
-                 {::sim-engine/doc "Stops when the iteration `n` is reached."
-                  ::sim-engine/id ::sim-engine/iteration-nth
-                  ::sim-engine/next-possible? true
-                  ::sim-engine/stopping-evaluation nil}
-                 ::sim-engine/model-end? false}
+                ::sim-engine/stopping-criteria {::sim-engine/params {::sim-engine/n 1}
+                                                ::sim-engine/stopping-definition
+                                                {::sim-engine/doc
+                                                 "Stops when the iteration `n` is reached."
+                                                 ::sim-engine/id ::sim-engine/iteration-nth
+                                                 ::sim-engine/next-possible? true
+                                                 ::sim-engine/stopping-evaluation nil}
+                                                ::sim-engine/model-end? false}
                 ::sim-engine/current-event {::sim-engine/type :IN
                                             ::sim-engine/date 0}}])))
       "Model end stopping-criteria is filtered"))
@@ -393,14 +387,13 @@
                                     :processing :p2}}}
            (-> [::sim-pred/one-of? :processing [:p1 :p2]]
                sim-pred/predicate-lang->predicate-fn
-               (sut/keep-state-resource {::sim-rc/resource
-                                         {:m1 {:id :m1
-                                               :processing :p3}
-                                          :m2 {:id :m2
-                                               :processing :p1}
-                                          :m3 {:id :m3}
-                                          :m4 {:id :m4
-                                               :processing :p2}}})))
+               (sut/keep-state-resource {::sim-rc/resource {:m1 {:id :m1
+                                                                 :processing :p3}
+                                                            :m2 {:id :m2
+                                                                 :processing :p1}
+                                                            :m3 {:id :m3}
+                                                            :m4 {:id :m4
+                                                                 :processing :p2}}})))
         "state contains only machines having :p1 or :p2 under :processing")
     (is (= {::sim-rc/resource {:m2 {:id :m2
                                     :name "MX5009"}
@@ -408,16 +401,15 @@
                                     :name "MX-TURBO-5892"}}}
            (-> [::sim-pred/starts-with? :name "MX"]
                sim-pred/predicate-lang->predicate-fn
-               (sut/keep-state-resource {::sim-rc/resource
-                                         {:m1 {:id :m1
-                                               :name "BR500"}
-                                          :m2 {:id :m2
-                                               :name "MX5009"}
-                                          :m3 {:id :m3
-                                               :name "MX-TURBO-5892"}
-                                          :m4 {:id :m4
-                                               :name "MA4"
-                                               :processing :p2}}})))
+               (sut/keep-state-resource {::sim-rc/resource {:m1 {:id :m1
+                                                                 :name "BR500"}
+                                                            :m2 {:id :m2
+                                                                 :name "MX5009"}
+                                                            :m3 {:id :m3
+                                                                 :name "MX-TURBO-5892"}
+                                                            :m4 {:id :m4
+                                                                 :name "MA4"
+                                                                 :processing :p2}}})))
         "state contains only machines starting with name MX"))
   (testing "snapshot state filtering"
     (is
@@ -527,9 +519,7 @@
        ::sim-engine/future-events [{:product :p1
                                     :machine :m3
                                     :important true}]}
-      (-> [::sim-pred/or
-           [::sim-pred/equal? :color "blue"]
-           [::sim-pred/true? :important]]
+      (-> [::sim-pred/or [::sim-pred/equal? :color "blue"] [::sim-pred/true? :important]]
           sim-pred/predicate-lang->predicate-fn
           (sut/keep-snapshot-resource
            {::sim-engine/state {::sim-rc/resource {:m1 {:id :m1

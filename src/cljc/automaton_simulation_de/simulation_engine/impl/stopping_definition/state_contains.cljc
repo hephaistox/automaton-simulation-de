@@ -1,5 +1,4 @@
-(ns
-  automaton-simulation-de.simulation-engine.impl.stopping-definition.state-contains
+(ns automaton-simulation-de.simulation-engine.impl.stopping-definition.state-contains
   (:require
    [automaton-simulation-de.simulation-engine :as-alias sim-engine]))
 
@@ -19,8 +18,7 @@
 
 (defn stopping-definition
   []
-  #:automaton-simulation-de.simulation-engine{:doc
-                                              "Stops when `state` path is containing any value"
+  #:automaton-simulation-de.simulation-engine{:doc "Stops when `state` path is containing any value"
                                               :id :state-contains
                                               :next-possible? true
                                               :stopping-evaluation stop?})

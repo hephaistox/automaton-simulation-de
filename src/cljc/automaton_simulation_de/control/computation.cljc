@@ -32,23 +32,18 @@
                              [::sim-engine/stopping-criteria
                               ::sim-engine/stopping-definition
                               ::sim-engine/next-possible?]))
-             (true? (get-in %
-                            [::sim-engine/stopping-criteria
-                             ::sim-engine/model-end?])))
+             (true? (get-in % [::sim-engine/stopping-criteria ::sim-engine/model-end?])))
         stopping-causes))
 
 (defn stopping-criteria-model-end?
   "Returns true if simulation has model-end criterias defined"
   [computation]
-  (let [registry (stopping-criterias computation)]
-    (some ::sim-engine/model-end? registry)))
+  (let [registry (stopping-criterias computation)] (some ::sim-engine/model-end? registry)))
 
 (defn model-end-iteration
   "Returns scheduler response when model-end? stopping-criteria is reached"
   ([computation]
    (let [criterias (stopping-criterias computation)
-         model-end-stopping-criterias (vec (filter #(::sim-engine/model-end? %)
-                                                   criterias))
-         iteration
-         (scheduler-response computation model-end-stopping-criterias 0)]
+         model-end-stopping-criterias (vec (filter #(::sim-engine/model-end? %) criterias))
+         iteration (scheduler-response computation model-end-stopping-criterias 0)]
      iteration)))

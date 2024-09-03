@@ -6,5 +6,4 @@
    [automaton-simulation-de.rc.preemption-policy :as sut]))
 
 (deftest schema-test
-  (testing "Schema is valid"
-    (is (nil? (core-schema/validate-humanize (sut/schema))))))
+  (testing "Schema is valid" (is (nil? (core-schema/validate-humanize (sut/schema))))))

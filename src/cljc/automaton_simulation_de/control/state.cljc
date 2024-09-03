@@ -24,8 +24,7 @@
   [initial-state]
   (let [schema (rendering-state-schema)
         initial-state (core-schema/add-default schema initial-state)]
-    (when (core-schema/validate-data schema initial-state)
-      (atom initial-state))))
+    (when (core-schema/validate-data schema initial-state) (atom initial-state))))
 
 (defn get [state] @state)
 

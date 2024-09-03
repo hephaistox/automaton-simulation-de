@@ -23,8 +23,7 @@
     (update ::sim-rc/queue
             (fnil #(conj %
                          #:automaton-simulation-de.rc{:seizing-event event
-                                                      ::sim-rc/consumed-quantity
-                                                      consumed-quantity})
+                                                      ::sim-rc/consumed-quantity consumed-quantity})
                   []))))
 
 (defn unqueue-event
@@ -41,24 +40,19 @@
     (cond
       (not (integer? available-capacity))
       (let [[_ new-queue] (unblocking-policy-fn queue)]
-        [[]
-         (assoc resource ::sim-rc/queue (if (empty? new-queue) [] new-queue))])
+        [[] (assoc resource ::sim-rc/queue (if (empty? new-queue) [] new-queue))])
       (<= available-capacity 0) [[] resource]
-      :else
-      (loop [unblocked-events []
-             queue queue
-             released-capacity 0]
-        (let [[blocking new-queue] (unblocking-policy-fn queue)
-              blocked-quantity (get blocking ::sim-rc/consumed-quantity 1)
-              new-released-quantity (+ released-capacity blocked-quantity)]
-          (cond
-            (nil? blocking)
-            [unblocked-events
-             (assoc resource ::sim-rc/queue (if (nil? new-queue) [] new-queue))]
-            (>= available-capacity new-released-quantity)
-            (recur (conj unblocked-events blocking)
-                   new-queue
-                   new-released-quantity)
-            :else
-            [unblocked-events
-             (assoc resource ::sim-rc/queue (if (nil? queue) [] queue))]))))))
+      :else (loop [unblocked-events []
+                   queue queue
+                   released-capacity 0]
+              (let [[blocking new-queue] (unblocking-policy-fn queue)
+                    blocked-quantity (get blocking ::sim-rc/consumed-quantity 1)
+                    new-released-quantity (+ released-capacity blocked-quantity)]
+                (cond
+                  (nil? blocking)
+                  [unblocked-events
+                   (assoc resource ::sim-rc/queue (if (nil? new-queue) [] new-queue))]
+                  (>= available-capacity new-released-quantity)
+                  (recur (conj unblocked-events blocking) new-queue new-released-quantity)
+                  :else [unblocked-events
+                         (assoc resource ::sim-rc/queue (if (nil? queue) [] queue))]))))))

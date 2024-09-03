@@ -19,9 +19,7 @@
      (map? event) (update ::sim-engine/future-events conj event)))
   ([event-return event date]
    (cond-> event-return
-     (map? event) (update ::sim-engine/future-events
-                          conj
-                          (assoc event ::sim-engine/date date)))))
+     (map? event) (update ::sim-engine/future-events conj (assoc event ::sim-engine/date date)))))
 
 (defn add-events
   "Add events to the future-events."

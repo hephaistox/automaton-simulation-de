@@ -38,8 +38,8 @@
     :as sim-de-computation-registry]
    [automaton-simulation-de.control.state
     :as sim-de-rendering-state]
-   [automaton-simulation-de.simulation-engine
-    :as sim-engine]
+   [automaton-simulation-de.simulation-engine                                         :as
+                                                                                      sim-engine]
    [automaton-simulation-de.simulation-engine.impl.stopping-definition.state-contains
     :as sim-de-sc-state-contains]
    #?(:clj [clojure.core.async :refer [<! go-loop timeout]]
@@ -48,8 +48,7 @@
 
 (defn- next-iteration-nb
   [snapshot x]
-  (let [curr-it
-        (or (get-in snapshot [::sim-engine/snapshot ::sim-engine/iteration]) 0)
+  (let [curr-it (or (get-in snapshot [::sim-engine/snapshot ::sim-engine/iteration]) 0)
         new-it-nb (+ curr-it x)]
     (if (< new-it-nb 0) 0 new-it-nb)))
 
@@ -70,16 +69,12 @@
 (defn make-computation
   "Creates computation object for rendering state to manage computation of scheduler responses"
   [model computation-type & comp-data]
-  (apply (get (sim-de-computation-registry/computation-registry)
-              computation-type)
-         model
-         comp-data))
+  (apply (get (sim-de-computation-registry/computation-registry) computation-type) model comp-data))
 
 (defn all-stopping-criterias
   "All stopping criterias that are possible"
   [state]
-  (sim-de-computation/stopping-criterias (:computation
-                                          (sim-de-rendering-state/get state))))
+  (sim-de-computation/stopping-criterias (:computation (sim-de-rendering-state/get state))))
 
 (defn move-x!
   "Move `x` number of iterations from the point of state `current-iteration`
@@ -87,24 +82,18 @@
    `x` - integer (both negative and positive numbers)"
   [state x]
   (when (and state (:computation (sim-de-rendering-state/get state)))
-    (let [it-nb (next-iteration-nb (:current-iteration
-                                    (sim-de-rendering-state/get state))
-                                   x)
-          iteration (sim-de-computation/iteration-n
-                     (:computation (sim-de-rendering-state/get state))
-                     it-nb)]
+    (let [it-nb (next-iteration-nb (:current-iteration (sim-de-rendering-state/get state)) x)
+          iteration
+          (sim-de-computation/iteration-n (:computation (sim-de-rendering-state/get state)) it-nb)]
       (when (= :success (::status iteration))
-        (sim-de-rendering-state/set state
-                                    :current-iteration
-                                    (::response iteration)))
+        (sim-de-rendering-state/set state :current-iteration (::response iteration)))
       iteration)))
 
 (defn pause!
   "Set :pause? in `state` to `val` boolean
    Default value for `val` is opposite of current value
    Especially useful for stopping `play!` fn`"
-  ([state val]
-   (:current-iteration (sim-de-rendering-state/set state :pause? val)))
+  ([state val] (:current-iteration (sim-de-rendering-state/set state :pause? val)))
   ([state] (pause! state (not (:pause? (sim-de-rendering-state/get state))))))
 
 (defn- sleep [sleep-ms] (<! (timeout sleep-ms)))
@@ -113,19 +102,17 @@
   "Starting with `current-response` goes to next iteration response and pass it to `on-iteration-fn` with interval defined by `play-delay-fn` untill there is no next iteration possible or `pause?-fn` evaluates to true. When finished executes `on-finish-fn`"
   [computation snapshot pause?-fn play-delay-fn on-iteration-fn on-finish-fn]
   (when computation
-    (go-loop [next-iteration (sim-de-computation/iteration-n
-                              computation
-                              (next-iteration-nb snapshot 1))]
+    (go-loop [next-iteration (sim-de-computation/iteration-n computation
+                                                             (next-iteration-nb snapshot 1))]
       (cond
         (pause?-fn next-iteration) (on-finish-fn next-iteration)
-        (= :no-next (::status next-iteration))
-        (do (on-iteration-fn next-iteration) (on-finish-fn next-iteration))
+        (= :no-next (::status next-iteration)) (do (on-iteration-fn next-iteration)
+                                                   (on-finish-fn next-iteration))
         :else (do (on-iteration-fn next-iteration)
                   (sleep (play-delay-fn))
                   (recur (sim-de-computation/iteration-n
                           computation
-                          (next-iteration-nb (::response next-iteration)
-                                             1))))))))
+                          (next-iteration-nb (::response next-iteration) 1))))))))
 
 (defn play!
   "Render simulation until rendering is paused or impossible to go further.
@@ -133,16 +120,12 @@
    Speed of going to next iteration can be adjusted with `:play-delay` in `state`"
   [state on-iteration-fn]
   (when (and state (:computation (sim-de-rendering-state/get state)))
-    (let [on-iteration-fn #(do (sim-de-rendering-state/set state
-                                                           :current-iteration
-                                                           (::response %))
+    (let [on-iteration-fn #(do (sim-de-rendering-state/set state :current-iteration (::response %))
                                (on-iteration-fn %))]
       (pause! state false)
       (play* (:computation (sim-de-rendering-state/get state))
              (:current-iteration (sim-de-rendering-state/get state))
-             (partial (fn [state _]
-                        (:pause? (sim-de-rendering-state/get state)))
-                      state)
+             (partial (fn [state _] (:pause? (sim-de-rendering-state/get state))) state)
              #(:play-delay (sim-de-rendering-state/get state))
              on-iteration-fn
              #(pause! state true)))))
@@ -150,18 +133,16 @@
 (defn fast-forward?
   "Is fast forward possible?"
   [state]
-  (sim-de-computation/stopping-criteria-model-end?
-   (:computation (sim-de-rendering-state/get state))))
+  (sim-de-computation/stopping-criteria-model-end? (:computation (sim-de-rendering-state/get
+                                                                  state))))
 
 (defn fast-forward!
   "Move to last possible iteration"
   [state]
   (when (and state (:computation (sim-de-rendering-state/get state)))
-    (let [iteration (sim-de-computation/model-end-iteration
-                     (:computation (sim-de-rendering-state/get state)))]
-      (sim-de-rendering-state/set state
-                                  :current-iteration
-                                  (::response iteration))
+    (let [iteration (sim-de-computation/model-end-iteration (:computation
+                                                             (sim-de-rendering-state/get state)))]
+      (sim-de-rendering-state/set state :current-iteration (::response iteration))
       iteration)))
 
 (defn rewind!
@@ -172,7 +153,5 @@
                         :computation
                         (sim-de-computation/iteration-n 0))]
       (when (= :success (::status iteration))
-        (sim-de-rendering-state/set state
-                                    :current-iteration
-                                    (::response iteration)))
+        (sim-de-rendering-state/set state :current-iteration (::response iteration)))
       iteration)))

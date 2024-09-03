@@ -39,8 +39,7 @@ Remarks:
      ::sim-engine/date (if (nil? event-date) date event-date)
      ::sim-engine/state state
      ::sim-engine/past-events (if (nil? new-past-events) [] new-past-events)
-     ::sim-engine/future-events
-     (if (nil? new-future-events) [] new-future-events)}))
+     ::sim-engine/future-events (if (nil? new-future-events) [] new-future-events)}))
 
 (defn next-iteration
   "Update the `snapshot` to the next iteration."
@@ -49,14 +48,13 @@ Remarks:
 
 (defn initial
   "Creates an initial snapshsot"
-  [starting-evt-type date]
+  [date future-events]
   {::sim-engine/id 1
    ::sim-engine/iteration 1
    ::sim-engine/date date
    ::sim-engine/state {}
    ::sim-engine/past-events []
-   ::sim-engine/future-events [{::sim-engine/type starting-evt-type
-                                ::sim-engine/date date}]})
+   ::sim-engine/future-events future-events})
 
 (defn inconsistency?
   "Check snapshot consistency
@@ -70,18 +68,14 @@ Remarks:
     :as snapshot}]
   (if (nil? date)
     ::sim-engine/nil-date
-    (let [res (-> (select-keys snapshot
-                               [::sim-engine/future-events
-                                ::sim-engine/past-events])
-                  (clojure.core/update ::sim-engine/future-events
+    (let [res (-> (select-keys snapshot [::sim-engine/future-events ::sim-engine/past-events])
+                  (clojure.core/update
+                   ::sim-engine/future-events
+                   (partial filterv #(let [d (::sim-engine/date %)] (or (nil? d) (> date d)))))
+                  (clojure.core/update ::sim-engine/past-events
                                        (partial filterv
                                                 #(let [d (::sim-engine/date %)]
-                                                   (or (nil? d) (> date d)))))
-                  (clojure.core/update
-                   ::sim-engine/past-events
-                   (partial filterv
-                            #(let [d (::sim-engine/date %)]
-                               (or (nil? d) (< date (::sim-engine/date %)))))))]
+                                                   (or (nil? d) (< date (::sim-engine/date %)))))))]
       (if (= res
              {::sim-engine/future-events []
               ::sim-engine/past-events []})
@@ -93,15 +87,12 @@ Remarks:
   "Helper to update `future-events` and `state`.
   Please note both will be replaced and not updated."
   [snapshot future-events state]
-  (assoc snapshot
-         ::sim-engine/future-events future-events
-         ::sim-engine/state state))
+  (assoc snapshot ::sim-engine/future-events future-events ::sim-engine/state state))
 
 (defn sort-future-events
   "Sort `future-events` in `snapshot` thanks the `sorting` sorter."
   [snapshot sorting]
-  (clojure.core/update
-   snapshot
-   ::sim-engine/future-events
-   (fn [future-events]
-     (or (if (fn? sorting) (sorting future-events) future-events) []))))
+  (clojure.core/update snapshot
+                       ::sim-engine/future-events
+                       (fn [future-events]
+                         (or (if (fn? sorting) (sorting future-events) future-events) []))))

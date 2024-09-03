@@ -7,12 +7,9 @@
 
   ![Entities](archi/simulation_engine/stopping_cause.png)"
   (:require
-   [automaton-simulation-de.simulation-engine                        :as-alias
-                                                                     sim-engine]
-   [automaton-simulation-de.simulation-engine.event
-    :as sim-de-event]
-   [automaton-simulation-de.simulation-engine.impl.stopping.criteria
-    :as sim-de-criteria]))
+   [automaton-simulation-de.simulation-engine                        :as-alias sim-engine]
+   [automaton-simulation-de.simulation-engine.event                  :as sim-de-event]
+   [automaton-simulation-de.simulation-engine.impl.stopping.criteria :as sim-de-criteria]))
 
 (def schema
   [:map {:closed true}
