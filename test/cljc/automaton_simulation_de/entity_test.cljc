@@ -6,8 +6,7 @@
    [automaton-simulation-de.entity                          :as sut]
    [automaton-simulation-de.simulation-engine               :as sim-engine]
    [automaton-simulation-de.simulation-engine.impl.model    :as sim-de-model]
-   [automaton-simulation-de.simulation-engine.impl.registry :as
-                                                            sim-de-registry]))
+   [automaton-simulation-de.simulation-engine.impl.registry :as sim-de-registry]))
 
 (deftest create-test
   (is (= #::sut{:entities {:foo-entity #::sut{:created #::sut{:date 3}
@@ -16,26 +15,23 @@
          (sut/create {} 3 :foo-entity {:foo :bar}))
       "Adding a new entity that was not existing before.")
   (is
-   (= #::sut{:entities {:foo-entity
-                        #::sut{:created #::sut{:date 4}
-                               :living #::sut{:date 5}
-                               :entity-state {:foo :bar
-                                              :a :b}
-                               :errors
-                               [#::sut{:why ::sut/already-created
-                                       :entity-name :foo-entity
-                                       :state
-                                       #::sut{:entities
-                                              {:foo-entity
-                                               #::sut{:created #::sut{:date 4}
-                                                      :entity-state {:a :b
-                                                                     :foo :c}}}}
-                                       :date 5
-                                       :entity-state {:foo :bar}}]}}}
+   (= #::sut{:entities {:foo-entity #::sut{:created #::sut{:date 4}
+                                           :living #::sut{:date 5}
+                                           :entity-state {:foo :bar
+                                                          :a :b}
+                                           :errors [#::sut{:why ::sut/already-created
+                                                           :entity-name :foo-entity
+                                                           :state
+                                                           #::sut{:entities
+                                                                  {:foo-entity
+                                                                   #::sut{:created #::sut{:date 4}
+                                                                          :entity-state {:a :b
+                                                                                         :foo :c}}}}
+                                                           :date 5
+                                                           :entity-state {:foo :bar}}]}}}
       (sut/create #::sut{:entities {:foo-entity #::sut{:created #::sut{:date 4}
                                                        :entity-state {:a :b
-                                                                      :foo
-                                                                      :c}}}}
+                                                                      :foo :c}}}}
                   5
                   :foo-entity
                   {:foo :bar}))
@@ -82,8 +78,7 @@ Note that `created` `date` is not modified on purpose as the real creation has h
 (deftest update-test
   (is
    (= (-> state-stub
-          (assoc-in [::sut/entities :foo-entity ::sut/entity-state :and]
-                    :another-data)
+          (assoc-in [::sut/entities :foo-entity ::sut/entity-state :and] :another-data)
           (assoc-in [::sut/entities :foo-entity ::sut/living ::sut/date] 5))
       (-> state-stub
           (sut/update 5 :foo-entity assoc :and :another-data)))
@@ -100,14 +95,12 @@ Note that `created` `date` is not modified on purpose as the real creation has h
       (-> state-stub
           (sut/update 5 :foo-entity #(throw (ex-info "Hey no!" {:a %})))
           (update-in [::sut/entities :foo-entity ::sut/errors] vec)
-          (assoc-in [::sut/entities :foo-entity ::sut/errors 0 ::sut/exception]
-                    {})))
+          (assoc-in [::sut/entities :foo-entity ::sut/errors 0 ::sut/exception] {})))
    "If update raises an exception, the error is documented, the living date is not, as we consider the update did not happen.")
   (is
    (= [[#::sut{:why ::sut/updating-a-disposed-entity
                :state (-> state-stub
-                          (assoc-in [::sut/entities :foo-entity ::sut/disposed]
-                                    #::sut{:date 5}))
+                          (assoc-in [::sut/entities :foo-entity ::sut/disposed] #::sut{:date 5}))
                :date 12
                :entity-name :foo-entity
                :function assoc
@@ -117,21 +110,19 @@ Note that `created` `date` is not modified on purpose as the real creation has h
         :bar :foo}]
       ((juxt #(sut/errors % :foo-entity) #(sut/state % :foo-entity))
        (-> state-stub
-           (assoc-in [::sut/entities :foo-entity ::sut/disposed]
-                     #::sut{:date 5})
+           (assoc-in [::sut/entities :foo-entity ::sut/disposed] #::sut{:date 5})
            (sut/update 12 :foo-entity assoc :bar :foo))))
    "The update function documents an error if the entity is already disposed, the creation is marked in the lifecycle status.")
-  (is
-   (= [#::sut{:why ::sut/updating-a-not-created-entity
-              :state {}
-              :date 12
-              :entity-name :foo-entity
-              :function assoc
-              :args [:bar :foo]}]
-      (-> {}
-          (sut/update 12 :foo-entity assoc :bar :foo)
-          (sut/errors :foo-entity)))
-   "Update can update a non existing entity, the creation is marked in the lifecycle status."))
+  (is (= [#::sut{:why ::sut/updating-a-not-created-entity
+                 :state {}
+                 :date 12
+                 :entity-name :foo-entity
+                 :function assoc
+                 :args [:bar :foo]}]
+         (-> {}
+             (sut/update 12 :foo-entity assoc :bar :foo)
+             (sut/errors :foo-entity)))
+      "Update can update a non existing entity, the creation is marked in the lifecycle status."))
 
 (deftest state-test
   (is (= {:foo :bar}
@@ -140,47 +131,41 @@ Note that `created` `date` is not modified on purpose as the real creation has h
                                                   :entity-state {:foo :bar}}}}
              (sut/state :foo-entity)))
       "The state is returned.")
-  (is (= nil (sut/state {} :non-existing-entity))
-      "No state returned for non existing."))
+  (is (= nil (sut/state {} :non-existing-entity)) "No state returned for non existing."))
 
 (deftest dispose-test
-  (is
-   (= #::sut{:entities {:foo-entity #::sut{:disposed #::sut{:date 10}
-                                           :created #::sut{:date 3}
-                                           :living #::sut{:date 5}}}}
-      (-> #::sut{:entities {:foo-entity #::sut{:entity-state {:data :of
-                                                              :an :entity}
-                                               :created #::sut{:date 3}
-                                               :living #::sut{:date 5}}}}
-          (sut/dispose 10 :foo-entity)))
-   "Disposing an existing entity is updatng the lifecycle and remove is data.")
-  (is
-   (= #::sut{:entities {:foo-entity
-                        #::sut{:disposed #::sut{:date 10}
-                               :created #::sut{:date 10}
-                               :errors
-                               [#::sut{:why ::sut/disposing-a-not-created-entity
-                                       :state {}
-                                       :date 10
-                                       :entity-name :foo-entity}]
-                               :living #::sut{:date 10}}}}
-      (-> #::sut{}
-          (sut/dispose 10 :foo-entity)))
-   "Disposing a non existing entity creates it and its lifecycle data, and reports an error.")
-  (is (= #::sut{:entities
-                {:foo-entity
-                 #::sut{:disposed #::sut{:date 10}
-                        :created #::sut{:date 3}
-                        :errors
-                        [#::sut{:why ::sut/already-disposed
-                                :state #::sut{:entities
-                                              {:foo-entity
-                                               #::sut{:disposed #::sut{:date 7}
-                                                      :created #::sut{:date 3}
-                                                      :living #::sut{:date 5}}}}
-                                :date 10
-                                :entity-name :foo-entity}]
-                        :living #::sut{:date 5}}}}
+  (is (= #::sut{:entities {:foo-entity #::sut{:disposed #::sut{:date 10}
+                                              :created #::sut{:date 3}
+                                              :living #::sut{:date 5}}}}
+         (-> #::sut{:entities {:foo-entity #::sut{:entity-state {:data :of
+                                                                 :an :entity}
+                                                  :created #::sut{:date 3}
+                                                  :living #::sut{:date 5}}}}
+             (sut/dispose 10 :foo-entity)))
+      "Disposing an existing entity is updatng the lifecycle and remove is data.")
+  (is (= #::sut{:entities {:foo-entity #::sut{:disposed #::sut{:date 10}
+                                              :created #::sut{:date 10}
+                                              :errors [#::sut{:why
+                                                              ::sut/disposing-a-not-created-entity
+                                                              :state {}
+                                                              :date 10
+                                                              :entity-name :foo-entity}]
+                                              :living #::sut{:date 10}}}}
+         (-> #::sut{}
+             (sut/dispose 10 :foo-entity)))
+      "Disposing a non existing entity creates it and its lifecycle data, and reports an error.")
+  (is (= #::sut{:entities {:foo-entity
+                           #::sut{:disposed #::sut{:date 10}
+                                  :created #::sut{:date 3}
+                                  :errors [#::sut{:why ::sut/already-disposed
+                                                  :state #::sut{:entities
+                                                                {:foo-entity
+                                                                 #::sut{:disposed #::sut{:date 7}
+                                                                        :created #::sut{:date 3}
+                                                                        :living #::sut{:date 5}}}}
+                                                  :date 10
+                                                  :entity-name :foo-entity}]
+                                  :living #::sut{:date 5}}}}
          (-> #::sut{:entities {:foo-entity #::sut{:disposed #::sut{:date 7}
                                                   :created #::sut{:date 3}
                                                   :living #::sut{:date 5}}}}
@@ -222,14 +207,12 @@ Note that `created` `date` is not modified on purpose as the real creation has h
                       (sut/is-created? :foo-entity))))
       "A non existing entity is not created.")
   (is (some? (-> #::sut{:entities {:foo-entity #::sut{:created #::sut{:date 3}
-                                                      :living #::sut{:date
-                                                                     11}}}}
+                                                      :living #::sut{:date 11}}}}
                  (sut/is-created? :foo-entity)))
       "A living entity is created.")
   (is (some? (-> #::sut{:entities {:foo-entity #::sut{:created #::sut{:date 3}
                                                       :living #::sut{:date 11}
-                                                      :disposed #::sut{:date
-                                                                       15}}}}
+                                                      :disposed #::sut{:date 15}}}}
                  (sut/is-created? :foo-entity)))
       "A disposed entity is created."))
 
@@ -244,8 +227,7 @@ Note that `created` `date` is not modified on purpose as the real creation has h
       "A living entity is living")
   (is (nil? (-> #::sut{:entities {:foo-entity #::sut{:created #::sut{:date 3}
                                                      :living #::sut{:date 11}
-                                                     :disposed #::sut{:date
-                                                                      15}}}}
+                                                     :disposed #::sut{:date 15}}}}
                 (sut/is-living? :foo-entity)))
       "A disposed entity is not living."))
 
@@ -272,8 +254,7 @@ Note that `created` `date` is not modified on purpose as the real creation has h
                                 #::sut{:entity-lifecycle-corrupted
                                        #::sim-engine{:doc
                                                      "Stops when an error occured in an entity lifecycle."
-                                                     :id
-                                                     ::sut/entity-lifecycle-corrupted
+                                                     :id ::sut/entity-lifecycle-corrupted
                                                      :next-possible? true
                                                      :stopping-evaluation
                                                      sut/lifecycle-corrupted}}}}
@@ -285,8 +266,7 @@ Note that `created` `date` is not modified on purpose as the real creation has h
 
 (deftest assembly-model-test
   (is (= nil
-         (->> (sim-de-model/build {::sim-engine/initial-event-type :IN}
-                                  (sim-de-registry/build))
+         (->> (sim-de-model/build {::sim-engine/initial-event-type :IN} (sim-de-registry/build))
               sut/wrap-model
               (core-schema/validate-data-humanize sim-de-model/schema)))))
 

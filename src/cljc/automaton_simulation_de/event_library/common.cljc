@@ -2,8 +2,7 @@
   "Event library helpers."
   (:require
    [automaton-simulation-de.simulation-engine              :as-alias sim-engine]
-   [automaton-simulation-de.simulation-engine.event-return
-    :as sim-de-event-return]))
+   [automaton-simulation-de.simulation-engine.event-return :as sim-de-event-return]))
 
 (defn sink
   "A sink is a noop event creating no other events."
@@ -18,12 +17,9 @@
     #:automaton-simulation-de.simulation-engine{:state state
                                                 :future-events
                                                 (-> future-events
-                                                    (concat (map
-                                                             #(assoc
-                                                               %
-                                                               ::sim-engine/date
-                                                               initial-date)
-                                                             events-to-add)))}))
+                                                    (concat
+                                                     (map #(assoc % ::sim-engine/date initial-date)
+                                                          events-to-add)))}))
 
 (defn delay-event
   "Play the event in the future, with a fix delay."
@@ -31,6 +27,5 @@
   (fn [{::sim-engine/keys [date]} state future-events]
     (let [new-date (+ date delay)]
       (-> #:automaton-simulation-de.simulation-engine{:state state
-                                                      :future-events
-                                                      future-events}
+                                                      :future-events future-events}
           (sim-de-event-return/add-event event-to-postpone new-date)))))

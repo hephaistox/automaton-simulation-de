@@ -17,8 +17,7 @@
 (defn- keep-map
   "Filter out key/value pairs which values return false with `pred-fn`"
   ([pred-fn m] (keep-map pred-fn nil m))
-  ([pred-fn path m]
-   (into {} (filter (fn [[_ v]] (pred-fn (get-path v path))) m))))
+  ([pred-fn path m] (into {} (filter (fn [[_ v]] (pred-fn (get-path v path))) m))))
 
 ;; Simulation engine
 (defn keep-state
@@ -69,15 +68,11 @@
   "Filter out of `snapshot` ALL state-items that do not match with `pred-fn` and filter out all events that do not mention those state-items ids"
   ([pred-fn snapshot] (keep-snapshot-events-based-state pred-fn nil snapshot))
   ([pred-fn id snapshot]
-   (keep-snapshot-events-based-state keys
-                                     #(keep-snapshot-state pred-fn %)
-                                     id
-                                     snapshot))
+   (keep-snapshot-events-based-state keys #(keep-snapshot-state pred-fn %) id snapshot))
   ([get-state-keys-fn keep-state-fn id snapshot]
    (let [snapshot (keep-state-fn snapshot)
          state-keys (get-state-keys-fn (::sim-engine/state snapshot))]
-     (keep-snapshot-events #(some (fn [v] (= v (get % id))) state-keys)
-                           snapshot))))
+     (keep-snapshot-events #(some (fn [v] (= v (get % id))) state-keys) snapshot))))
 
 ;; Simulation response
 (defn keep-stopping-causes
@@ -90,8 +85,7 @@
   [pred-fn stopping-causes]
   (filter (fn [stopping-cause]
             (pred-fn (get-in stopping-cause
-                             [::sim-engine/stopping-criteria
-                              ::sim-engine/model-end?])))
+                             [::sim-engine/stopping-criteria ::sim-engine/model-end?])))
           stopping-causes))
 
 (defn keep-stopping-causes-by-stopping-definition
@@ -99,8 +93,7 @@
   [pred-fn stopping-causes]
   (filter (fn [stopping-cause]
             (pred-fn (get-in stopping-cause
-                             [::sim-engine/stopping-criteria
-                              ::sim-engine/stopping-definition])))
+                             [::sim-engine/stopping-criteria ::sim-engine/stopping-definition])))
           stopping-causes))
 
 ;; Multiple snapshots
@@ -109,9 +102,7 @@
   [pred-fn snapshots]
   (reduce (fn [acc snapshot]
             (let [last-snapshot-state (::sim-engine/state (last acc))]
-              (if (= (::sim-engine/state snapshot) last-snapshot-state)
-                acc
-                (conj acc snapshot))))
+              (if (= (::sim-engine/state snapshot) last-snapshot-state) acc (conj acc snapshot))))
           []
           (map #(keep-snapshot-state pred-fn %) snapshots)))
 
@@ -135,8 +126,7 @@
 
 (defn keep-snapshot-events-based-state-resource
   "Keeps in snapshot `state` only those resources that match with `pred-fn` and filters events that contains those resources ids"
-  ([pred-fn snapshot]
-   (keep-snapshot-events-based-state-resource pred-fn nil snapshot))
+  ([pred-fn snapshot] (keep-snapshot-events-based-state-resource pred-fn nil snapshot))
   ([pred-fn id snapshot]
    (keep-snapshot-events-based-state #(keys (get % ::sim-rc/resource))
                                      #(keep-snapshot-state-resource pred-fn %)
@@ -147,9 +137,7 @@
 (defn keep-state-entity
   "Keeps in simulation `state` only those entities that match with `pred-fn`"
   [pred-fn state]
-  (update state
-          ::sim-entity/entities
-          (partial keep-map pred-fn ::sim-entity/entity-state)))
+  (update state ::sim-entity/entities (partial keep-map pred-fn ::sim-entity/entity-state)))
 
 (defn keep-snapshot-state-entity
   "Keeps in simulation `snapshot` state only those entities that match with `pred-fn`"
@@ -165,8 +153,7 @@
 
 (defn keep-snapshot-events-based-state-entity
   "Keeps in snapshot `state` only those entities that match with `pred-fn` and filters events that contains those resources ids"
-  ([pred-fn snapshot]
-   (keep-snapshot-events-based-state-entity pred-fn nil snapshot))
+  ([pred-fn snapshot] (keep-snapshot-events-based-state-entity pred-fn nil snapshot))
   ([pred-fn id snapshot]
    (keep-snapshot-events-based-state #(keys (::sim-entity/entities %))
                                      #(keep-snapshot-state-entity pred-fn %)

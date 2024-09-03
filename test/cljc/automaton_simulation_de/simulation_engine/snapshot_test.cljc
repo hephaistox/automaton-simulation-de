@@ -7,8 +7,7 @@
    [automaton-simulation-de.simulation-engine.snapshot :as sut]))
 
 (deftest schema-test
-  (testing "Testing schema validity"
-    (is (= nil (core-schema/validate-humanize sut/schema))))
+  (testing "Testing schema validity" (is (= nil (core-schema/validate-humanize sut/schema))))
   (testing "Test an example of iteration"
     (is (= nil
            (core-schema/validate-data-humanize
@@ -139,13 +138,10 @@
 
 (deftest inconsistency?-test
   (testing "Empty past and future are consistent"
-    (is (false? (sut/inconsistency?
-                 #:automaton-simulation-de.simulation-engine{:date 2
-                                                             :future-events []
-                                                             :past-events
-                                                             []}))))
-  (testing
-    "Past events before 5, snapshot at 5, and future after 5 are seen as consistent"
+    (is (false? (sut/inconsistency? #:automaton-simulation-de.simulation-engine{:date 2
+                                                                                :future-events []
+                                                                                :past-events []}))))
+  (testing "Past events before 5, snapshot at 5, and future after 5 are seen as consistent"
     (is
      (false?
       (sut/inconsistency?

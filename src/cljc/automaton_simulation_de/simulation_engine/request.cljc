@@ -10,13 +10,10 @@
   * `stopping-causes`, the scheduler snapshot and the current event.
   * ![entities](archi/request_entity.png)"
   (:require
-   [automaton-simulation-de.simulation-engine                 :as-alias
-                                                              sim-engine]
+   [automaton-simulation-de.simulation-engine                 :as-alias sim-engine]
    [automaton-simulation-de.simulation-engine.event           :as sim-de-event]
-   [automaton-simulation-de.simulation-engine.event-execution
-    :as sim-de-event-execution]
-   [automaton-simulation-de.simulation-engine.snapshot        :as
-                                                              sim-de-snapshot]))
+   [automaton-simulation-de.simulation-engine.event-execution :as sim-de-event-execution]
+   [automaton-simulation-de.simulation-engine.snapshot        :as sim-de-snapshot]))
 
 (def schema
   [:map {:closed false}
@@ -24,8 +21,7 @@
    [::sim-engine/event-execution [:maybe sim-de-event-execution/schema]]
    [::sim-engine/snapshot sim-de-snapshot/schema]
    [::sim-engine/sorting
-    [:function
-     [:=> [:cat [:vector sim-de-event/schema]] [:vector sim-de-event/schema]]]]
+    [:function [:=> [:cat [:vector sim-de-event/schema]] [:vector sim-de-event/schema]]]]
    [::sim-engine/stopping-causes [:sequential :map]]])
 
 (defn add-stopping-cause

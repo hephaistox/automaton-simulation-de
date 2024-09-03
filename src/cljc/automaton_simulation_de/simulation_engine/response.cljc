@@ -5,14 +5,14 @@
   * `stopping-causes`
   * `snapshot`."
   (:require
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
+   [automaton-simulation-de.simulation-engine                                   :as-alias
+                                                                                sim-engine]
    [automaton-simulation-de.simulation-engine.impl.built-in-sd.causality-broken
     :as sim-de-causality-broken]
    [automaton-simulation-de.simulation-engine.impl.stopping.cause
     :as sim-de-stopping-cause]
-   [automaton-simulation-de.simulation-engine.snapshot
-    :as sim-de-snapshot]))
+   [automaton-simulation-de.simulation-engine.snapshot                          :as
+                                                                                sim-de-snapshot]))
 
 (def schema
   [:map {:closed false}
@@ -25,8 +25,7 @@
    {::sim-engine/keys [stopping-causes]
     :as m}]
   (cond-> response
-    (and (nil? m) (empty? stopping-causes)) (assoc ::sim-engine/stopping-causes
-                                                   [])
+    (and (nil? m) (empty? stopping-causes)) (assoc ::sim-engine/stopping-causes [])
     (some? m) (update ::sim-engine/stopping-causes conj m)))
 
 (defn consume-first-event
@@ -41,20 +40,14 @@
    current-event]
   (let [{::sim-engine/keys [date]} snapshot
         next-snapshot (sim-de-snapshot/consume-first-event snapshot)
-        causality-broken (sim-de-causality-broken/evaluates snapshot
-                                                            next-snapshot
-                                                            current-event)]
-    (cond-> (assoc response
-                   ::sim-engine/snapshot
-                   (sim-de-snapshot/next-iteration next-snapshot))
+        causality-broken (sim-de-causality-broken/evaluates snapshot next-snapshot current-event)]
+    (cond-> (assoc response ::sim-engine/snapshot (sim-de-snapshot/next-iteration next-snapshot))
       (some? causality-broken) (add-stopping-cause causality-broken)
-      (some? causality-broken)
-      (assoc-in [::sim-engine/snapshot ::sim-engine/date] date))))
+      (some? causality-broken) (assoc-in [::sim-engine/snapshot ::sim-engine/date] date))))
 
 (defn add-current-event-to-stopping-causes
   "Adds `current-event` to `stopping-causes` in the `response`."
   [response current-event]
   (-> response
       (update ::sim-engine/stopping-causes
-              (partial map
-                       #(assoc % ::sim-engine/current-event current-event)))))
+              (partial map #(assoc % ::sim-engine/current-event current-event)))))

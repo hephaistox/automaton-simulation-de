@@ -6,5 +6,4 @@
    [automaton-simulation-de.rc.unblocking-policy :as sut]))
 
 (deftest schema-test
-  (testing "Validate schema"
-    (is (nil? (core-schema/validate-humanize (sut/schema))))))
+  (testing "Validate schema" (is (nil? (core-schema/validate-humanize (sut/schema))))))

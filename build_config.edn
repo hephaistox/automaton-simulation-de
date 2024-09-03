@@ -1,23 +1,18 @@
 {:app-name "automaton-simulation-de"
  :task-shared {:gha {}
-               :publication
-               {:as-lib org.clojars.hephaistox/automaton-simulation-de
-                :deploy-to :clojars
-                :env {:la {}
-                      :production {}}
-                :frontend {:run-aliases [:browser-test :ltest]}
-                :license {}
-                :repo "git@github.com:hephaistox/automaton-simulation-de.git"}
+               :publication {:as-lib org.clojars.hephaistox/automaton-simulation-de
+                             :deploy-to :clojars
+                             :env {:la {}
+                                   :production {}}
+                             :frontend {:run-aliases [:browser-test :ltest]}
+                             :license {}
+                             :repo "git@github.com:hephaistox/automaton-simulation-de.git"}
                :repl-aliases [:common-test :env-development-repl :build]}
- :tasks {:clean {:dirs [".cpcache/"
-                        ".clj-kondo/.cache/"
-                        "tmp/"
-                        "target/"
-                        "node_modules/"
-                        ".shadow-cljs/builds/"]}
-         :lfe-test {}
-         :lfe-watch {}
-         :reports {:forbiddenwords-words #{"landing" "tap>"}}
-         :update-deps {:exclude-libs
-                       #{"org.clojars.hephaistox/automaton-build@*-*"
-                         "org.clojars.hephaistox/automaton-core@*-*"}}}}
+ :tasks
+ {:clean
+  {:dirs [".cpcache/" ".clj-kondo/.cache/" "tmp/" "target/" "node_modules/" ".shadow-cljs/builds/"]}
+  :lfe-test {}
+  :lfe-watch {}
+  :reports {:forbiddenwords-words #{"landing" "tap>"}}
+  :update-deps {:exclude-libs #{"org.clojars.hephaistox/automaton-build@*-*"
+                                "org.clojars.hephaistox/automaton-core@*-*"}}}}

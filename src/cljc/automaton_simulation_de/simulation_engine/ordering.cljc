@@ -41,8 +41,7 @@
       (cond
         (nil? te1) 666
         (nil? te2) -666
-        (not= te1 te2) (- (.indexOf evt-type-priorities te1)
-                          (.indexOf evt-type-priorities te2))
+        (not= te1 te2) (- (.indexOf evt-type-priorities te1) (.indexOf evt-type-priorities te2))
         :else 0))))
 
 (defn- orders

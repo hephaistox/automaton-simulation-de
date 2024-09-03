@@ -1,12 +1,9 @@
-(ns
-  automaton-simulation-de.simulation-engine.impl.built-in-sd.request-validation-test
+(ns automaton-simulation-de.simulation-engine.impl.built-in-sd.request-validation-test
   (:require
    #?(:clj [clojure.test :refer [deftest is]]
       :cljs [cljs.test :refer [deftest is] :include-macros true])
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine.impl.built-in-sd.request-validation
-    :as sut]
+   [automaton-core.adapters.schema                                                :as core-schema]
+   [automaton-simulation-de.simulation-engine.impl.built-in-sd.request-validation :as sut]
    [automaton-simulation-de.simulation-engine.impl.stopping.definition
     :as sim-de-sc-definition]))
 

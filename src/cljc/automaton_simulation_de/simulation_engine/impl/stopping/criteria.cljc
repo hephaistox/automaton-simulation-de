@@ -8,12 +8,9 @@
 
   ![entities][archi/simulation_engine/stopping_stopping-criteria.png]"
   (:require
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
-   [automaton-simulation-de.simulation-engine.impl.stopping.definition
-    :as sim-de-sc-definition]))
+   [automaton-core.adapters.schema                                     :as core-schema]
+   [automaton-simulation-de.simulation-engine                          :as-alias sim-engine]
+   [automaton-simulation-de.simulation-engine.impl.stopping.definition :as sim-de-sc-definition]))
 
 (def schema
   [:map {:closed true}
@@ -33,8 +30,7 @@
    snapshot]
   (let [{::sim-engine/keys [stopping-evaluation]} stopping-definition]
     (when (fn? stopping-evaluation)
-      (let [{::sim-engine/keys [stop? context]} (stopping-evaluation snapshot
-                                                                     params)]
+      (let [{::sim-engine/keys [stop? context]} (stopping-evaluation snapshot params)]
         (when stop?
           {::sim-engine/context context
            ::sim-engine/stopping-criteria stopping-criteria})))))
@@ -61,19 +57,15 @@
   All other forms are discarded."
   [stopping-registry stopping-criteria]
   (cond
-    (keyword? stopping-criteria)
-    (let [stopping-definition-id stopping-criteria]
-      (when-let [stopping-definition (get stopping-registry
-                                          stopping-definition-id)]
-        {::sim-engine/params {}
-         ::sim-engine/stopping-definition stopping-definition}))
+    (keyword? stopping-criteria) (let [stopping-definition-id stopping-criteria]
+                                   (when-let [stopping-definition (get stopping-registry
+                                                                       stopping-definition-id)]
+                                     {::sim-engine/params {}
+                                      ::sim-engine/stopping-definition stopping-definition}))
     (vector? stopping-criteria)
     (let [[stopping-definition-id params] stopping-criteria]
-      (when (and (or (nil? params) (map? params))
-                 (keyword? stopping-definition-id))
-        (when-let [stopping-definition (get stopping-registry
-                                            stopping-definition-id)]
+      (when (and (or (nil? params) (map? params)) (keyword? stopping-definition-id))
+        (when-let [stopping-definition (get stopping-registry stopping-definition-id)]
           {::sim-engine/params params
            ::sim-engine/stopping-definition stopping-definition})))
-    (true? (core-schema/validate-data schema stopping-criteria))
-    stopping-criteria))
+    (true? (core-schema/validate-data schema stopping-criteria)) stopping-criteria))

@@ -3,12 +3,11 @@
 
   ![Entities](archi/simulation_engine/stopping_registry.png)"
   (:require
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-core.utils.map
-    :as utils-map]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
+   [automaton-core.adapters.schema                                                   :as
+                                                                                     core-schema]
+   [automaton-core.utils.map                                                         :as utils-map]
+   [automaton-simulation-de.simulation-engine                                        :as-alias
+                                                                                     sim-engine]
    [automaton-simulation-de.simulation-engine.impl.built-in-sd.request-validation
     :as sim-de-request-validation]
    [automaton-simulation-de.simulation-engine.impl.built-in-sd.response-validation
@@ -17,13 +16,12 @@
     :as sim-de-sc-bucket]
    [automaton-simulation-de.simulation-engine.impl.stopping-definition.iteration-nth
     :as sim-de-sc-iteration-nth]
-   [automaton-simulation-de.simulation-engine.impl.stopping-definition.now
-    :as sim-de-sc-now]
+   [automaton-simulation-de.simulation-engine.impl.stopping-definition.now           :as
+                                                                                     sim-de-sc-now]
    [automaton-simulation-de.simulation-engine.impl.stopping.definition
     :as sim-de-sc-definition]))
 
-(def schema
-  [:map-of sim-de-sc-definition/id-schema sim-de-sc-definition/schema])
+(def schema [:map-of sim-de-sc-definition/id-schema sim-de-sc-definition/schema])
 
 (defn add-stopping-definition
   "Add the stopping definition in the registry."

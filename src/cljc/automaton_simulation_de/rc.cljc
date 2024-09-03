@@ -10,16 +10,13 @@
   Note:
    * All namespaced keywords of the rc bounded context are from this namespace, so rc users need only to refer this one."
   (:require
-   [automaton-simulation-de.rc.impl.preemption-policy.registry
-    :as sim-de-rc-preemption-policy-registry]
-   [automaton-simulation-de.rc.impl.state                      :as
-                                                               sim-de-rc-state]
-   [automaton-simulation-de.rc.impl.unblocking-policy.registry
-    :as sim-de-rc-unblocking-policy-registry]
-   [automaton-simulation-de.simulation-engine                  :as-alias
-                                                               sim-engine]
-   [automaton-simulation-de.simulation-engine.event-return
-    :as sim-de-event-return]))
+   [automaton-simulation-de.rc.impl.preemption-policy.registry :as
+                                                               sim-de-rc-preemption-policy-registry]
+   [automaton-simulation-de.rc.impl.state                      :as sim-de-rc-state]
+   [automaton-simulation-de.rc.impl.unblocking-policy.registry :as
+                                                               sim-de-rc-unblocking-policy-registry]
+   [automaton-simulation-de.simulation-engine                  :as-alias sim-engine]
+   [automaton-simulation-de.simulation-engine.event-return     :as sim-de-event-return]))
 
 (defn seize
   "Seize a resource,
@@ -38,18 +35,16 @@
    consumed-quantity
    seizing-date
    postponed-event]
-  (let [[consumption-uuid state]
-        (sim-de-rc-state/seize
-         state
-         resource-name
-         consumed-quantity
-         (when postponed-event
-           (assoc postponed-event ::sim-engine/date seizing-date)))]
+  (let [[consumption-uuid state] (sim-de-rc-state/seize
+                                  state
+                                  resource-name
+                                  consumed-quantity
+                                  (when postponed-event
+                                    (assoc postponed-event ::sim-engine/date seizing-date)))]
     (cond-> event-return
-      consumption-uuid
-      (sim-de-event-return/add-event
-       (assoc-in postponed-event [::resource resource-name] consumption-uuid)
-       seizing-date)
+      consumption-uuid (sim-de-event-return/add-event
+                        (assoc-in postponed-event [::resource resource-name] consumption-uuid)
+                        seizing-date)
       (some? state) (assoc ::sim-engine/state state))))
 
 (defn dispose
@@ -62,17 +57,14 @@
     ::sim-engine/keys [date]
     :as _current-event}]
   (let [{::sim-engine/keys [state]} event-return
-        [unblockings state] (sim-de-rc-state/dispose state
-                                                     resource-name
-                                                     (get resource
-                                                          resource-name))]
-    (reduce
-     (fn [event-return
-          {::keys [consumed-quantity seizing-event]
-           :as _blocking}]
-       (seize event-return resource-name consumed-quantity date seizing-event))
-     (assoc event-return ::sim-engine/state state)
-     unblockings)))
+        [unblockings state]
+        (sim-de-rc-state/dispose state resource-name (get resource resource-name))]
+    (reduce (fn [event-return
+                 {::keys [consumed-quantity seizing-event]
+                  :as _blocking}]
+              (seize event-return resource-name consumed-quantity date seizing-event))
+            (assoc event-return ::sim-engine/state state)
+            unblockings)))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn resource-update
@@ -81,10 +73,8 @@
     :as event-return}
    resource-name
    new-capacity]
-  (let [[unblocked-events state] (sim-de-rc-state/update-resource-capacity
-                                  state
-                                  resource-name
-                                  new-capacity)]
+  (let [[unblocked-events state]
+        (sim-de-rc-state/update-resource-capacity state resource-name new-capacity)]
     (-> event-return
         (assoc ::sim-engine/state state)
         (sim-de-event-return/add-events unblocked-events))))
@@ -117,8 +107,7 @@
   (cond-> model
     (seq rc) (update-in [::sim-engine/initial-snapshot ::sim-engine/state]
                         (fn [state]
-                          (sim-de-rc-state/define-resources
-                           state
-                           rc
-                           unblocking-policy-registry
-                           preemption-policy-registry)))))
+                          (sim-de-rc-state/define-resources state
+                                                            rc
+                                                            unblocking-policy-registry
+                                                            preemption-policy-registry)))))

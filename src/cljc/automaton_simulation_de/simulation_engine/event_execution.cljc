@@ -4,8 +4,7 @@
   * [See entity](docs/archi/event_execution.png)"
   (:require
    [automaton-simulation-de.simulation-engine.event        :as sim-de-event]
-   [automaton-simulation-de.simulation-engine.event-return
-    :as sim-de-event-return]))
+   [automaton-simulation-de.simulation-engine.event-return :as sim-de-event-return]))
 
 (def schema
   "An event is a tuple which first value is a keyword for the event type, the second is a date"

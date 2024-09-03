@@ -7,8 +7,7 @@
   [nm]
   (walk/postwalk (fn [el]
                    (cond
-                     (map? el) (not-empty
-                                (into {} (remove (comp nil? second)) el))
+                     (map? el) (not-empty (into {} (remove (comp nil? second)) el))
                      (vector? el) (into [] (remove nil? el))
                      (list? el) (remove nil? el)
                      :else el))

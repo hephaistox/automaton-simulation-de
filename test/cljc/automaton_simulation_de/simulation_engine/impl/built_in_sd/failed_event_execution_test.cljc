@@ -1,14 +1,12 @@
-(ns
-  automaton-simulation-de.simulation-engine.impl.built-in-sd.failed-event-execution-test
+(ns automaton-simulation-de.simulation-engine.impl.built-in-sd.failed-event-execution-test
   (:require
    #?(:clj [clojure.test :refer [deftest is]]
       :cljs [cljs.test :refer [deftest is] :include-macros true])
-   [automaton-core.adapters.schema
-    :as core-schema]
-   [automaton-simulation-de.simulation-engine
-    :as-alias sim-engine]
-   [automaton-simulation-de.simulation-engine.impl.built-in-sd.failed-event-execution
-    :as sut]
+   [automaton-core.adapters.schema                                                    :as
+                                                                                      core-schema]
+   [automaton-simulation-de.simulation-engine                                         :as-alias
+                                                                                      sim-engine]
+   [automaton-simulation-de.simulation-engine.impl.built-in-sd.failed-event-execution :as sut]
    [automaton-simulation-de.simulation-engine.impl.stopping.definition
     :as sim-de-sc-definition]
    [automaton-simulation-de.simulation-engine.response
@@ -17,8 +15,7 @@
 (deftest stopping-definition-test
   (is (= nil
          (->> sut/stopping-definition
-              (core-schema/validate-data-humanize
-               sim-de-sc-definition/schema)))))
+              (core-schema/validate-data-humanize sim-de-sc-definition/schema)))))
 
 (deftest stopping-cause-test
   (is
@@ -28,8 +25,7 @@
       (sut/evaluates
        #:automaton-simulation-de.simulation-engine{:stopping-causes []
                                                    :snapshot
-                                                   #:automaton-simulation-de.simulation-engine{:id
-                                                                                               1
+                                                   #:automaton-simulation-de.simulation-engine{:id 1
                                                                                                :iteration
                                                                                                1
                                                                                                :date
