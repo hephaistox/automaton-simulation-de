@@ -1,8 +1,8 @@
 {:aliases
  {:antq {:deps {com.github.liquidz/antq {:mvn/version "2.9.1217"}}
          :main-opts ["-m" "antq.core"]}
-  :bb-deps {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.0.1"}}}
-  :build {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.0.1"}}
+  :bb-deps {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.0.2-la"}}}
+  :build {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.0.2-la"}}
           :ns-default build}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
                            thheller/shadow-cljs #:mvn{:version "2.28.12"}}
@@ -18,14 +18,14 @@
     "https://github.com/hephaistox/automaton-simulation-de/blob/{version}/{filepath}#L{line}"}
    :exec-fn codox.main/generate-docs
    :extra-deps {codox/codox {:mvn/version "0.10.8"}}}
-  :common-test {:exec-fn cognitect.test-runner.api/test
-                :extra-deps {com.cognitect/test-runner
-                             {:git/url "https://github.com/cognitect-labs/test-runner"
-                              :sha "9d36f36ff541dac680a05010e4348c744333f191"}
-                             org.clojure/tools.namespace #:mvn{:version "1.5.0"}
-                             org.clojure/tools.reader #:mvn{:version "1.5.0"}}
-                :extra-paths ["test/clj/" "test/cljc/" "test/resources/"]
-                :jvm-opts ["-Dheph-conf=env/test/config.edn,env/common_config.edn"]}
+  :common-test
+  {:exec-fn cognitect.test-runner.api/test
+   :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner"
+                                           :sha "9d36f36ff541dac680a05010e4348c744333f191"}
+                org.clojure/tools.namespace #:mvn{:version "1.5.0"}
+                org.clojure/tools.reader #:mvn{:version "1.5.0"}}
+   :extra-paths ["test/clj/" "test/cljc/" "test/resources/"]
+   :jvm-opts ["-Dheph-conf=env/test/config.edn,env/common_config.edn" "-Dhephaistox-in-test=true"]}
   :env-development-repl {:extra-deps {org.clojure/core.async #:mvn{:version "1.6.681"}}
                          :extra-paths ["env/development/resources/"
                                        "env/development/src/clj/"
@@ -33,8 +33,14 @@
                          :jvm-opts ["-Dheph-conf=env/development/config.edn,env/common_config.edn"]
                          :main-opts ["-m" "automaton-simulation-de.local-repl"]}
   :env-development-test
-  {:jvm-opts ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/log4j2-factory"
+  {:exec-fn cognitect.test-runner.api/test
+   :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner"
+                                           :sha "9d36f36ff541dac680a05010e4348c744333f191"}
+                org.clojure/tools.namespace {:mvn/version "1.5.0"}
+                org.clojure/tools.reader {:mvn/version "1.5.0"}}
+   :jvm-opts ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/log4j2-factory"
               "-Dhephaistox-in-test=true"]
    :main-opts ["-m" "cognitect.test-runner" "-r" ".*-test.*" "-d" "test/clj" "-d" "test/cljc"]}}
- :deps {org.clojars.hephaistox/automaton-core #:mvn{:version "1.3.1"}}
+ :deps {juji/editscript #:mvn{:version "0.6.3"}
+        org.clojars.hephaistox/automaton-core #:mvn{:version "1.4.0-la"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}
