@@ -1,4 +1,3 @@
-#_{:heph-ignore {:reports false}}
 (ns automaton-simulation-de.rc.impl.resource
   "A resource is a limited quantity of items that are used by entities as they proceed through the system. A resource has a capacity that governs the total quantity of items that may be available. All the items in the resource are homogeneous, meaning that they are indistinguishable. If an entity attempts to seize a resource that does not have any units available it must wait in a queue.
   It is often representing real world items that availability is limited (e.g. machine, wrench, ...).

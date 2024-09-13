@@ -29,9 +29,7 @@
                            (fn [_request] {:bar :foo}))
                           {}))))
     (is (= {:bar :foo}
-           (((sut/data-to-fn (sut/build)
-                             [::sim-engine/state-printing
-                              (fn [state] (println "print-state:" state))])
+           (((sut/data-to-fn (sut/build) [::sim-engine/state-printing (fn [_state])])
              (fn [_request] {:bar :foo}))
             {}))))
   (testing "Non existing middleware is returning nil"
