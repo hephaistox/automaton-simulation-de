@@ -1,8 +1,8 @@
 {:aliases
  {:antq {:deps {com.github.liquidz/antq {:mvn/version "2.9.1217"}}
          :main-opts ["-m" "antq.core"]}
-  :bb-deps {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.1.0"}}}
-  :build {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.1.0"}}
+  :bb-deps {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.2.0-9-la"}}}
+  :build {:extra-deps #:org.clojars.hephaistox{automaton-build #:mvn{:version "3.2.0-9-la"}}
           :ns-default build}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
                            thheller/shadow-cljs #:mvn{:version "2.28.12"}}

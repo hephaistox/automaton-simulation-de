@@ -10,7 +10,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <version>1.11.4</version>
+      <version>1.11.1</version>
     </dependency>
     <dependency>
       <groupId>org.clojars.hephaistox</groupId>
@@ -24,7 +24,7 @@
     </dependency>
   </dependencies>
   <build>
-    <sourceDirectory>src/clj/</sourceDirectory>
+    <sourceDirectory>resources/</sourceDirectory>
   </build>
   <repositories>
     <repository>
