@@ -43,5 +43,5 @@
               "-Dhephaistox-in-test=true"]
    :main-opts ["-m" "cognitect.test-runner" "-r" ".*-test.*" "-d" "test/clj" "-d" "test/cljc"]}}
  :deps {juji/editscript #:mvn{:version "0.6.3"}
-        org.clojars.hephaistox/automaton-core #:mvn{:version "1.5.0-27-la"}}
+        org.clojars.hephaistox/automaton-core #:mvn{:version "1.5.0-28-la"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}
