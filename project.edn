@@ -1,6 +1,12 @@
 {:app-name "automaton-simulation-de"
  :code {:forbidden-words ["TODO" "DONE" "NOTE" "FIXME" "tap>"]}
  :frontend {:run-aliases [:browser-test :ltest]}
- :publication {:as-lib org.clojars.hephaistox/automaton-simulation-de
-               :base-branch "main"
-               :repo-url "git@github.com:hephaistox/automaton-simulation-de.git"}}
+ :publication {:base-branch "main"
+               :clojars true
+               :compiled-css-path "resources/public/css/compiled/styles.css"
+               :css-files ["resources/css/custom.css" "resources/css/main.css"]
+               :excluded-aliases
+               [:antq :codox :env-development-repl :env-development-test :common-test :deploy]
+               :la-branch "la"
+               :pom-xml-license {:name "CC BY-NC 4.0"
+                                 :url "https://creativecommons.org/licenses/by-nc/4.0/deed.en"}}}
