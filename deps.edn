@@ -1,5 +1,6 @@
 {:aliases
- {:antq {:deps {com.github.liquidz/antq {:mvn/version "2.9.1217"}}
+ {:antq {:deps {com.github.liquidz/antq {:git/url "https://github.com/Kaspazza/antq"
+                                         :sha "a2606c7dc0edfae1990e367242b28accf2ded115"}}
          :main-opts ["-m" "antq.core"]}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
                            thheller/shadow-cljs #:mvn{:version "2.28.12"}}
@@ -25,7 +26,8 @@
    :jvm-opts ["-Dheph-conf=env/test/config.edn,env/common_config.edn" "-Dhephaistox-in-test=true"]}
   :deploy {:exec-args {:installer :remote}
            :exec-fn deps-deploy.deps-deploy/deploy
-           :extra-deps {slipset/deps-deploy {:git/url "https://github.com/Kaspazza/deps-deploy"
+           :extra-deps {slipset/deps-deploy {:exclusions [org.slf4j/slf4j-nop]
+                                             :git/url "https://github.com/Kaspazza/deps-deploy"
                                              :sha "7b4b72d124f788c9e4a876e0ba55899fd9091f1d"}}}
   :env-development-repl {:extra-deps {org.clojure/core.async #:mvn{:version "1.6.681"}}
                          :extra-paths ["env/development/resources/"
@@ -43,5 +45,5 @@
               "-Dhephaistox-in-test=true"]
    :main-opts ["-m" "cognitect.test-runner" "-r" ".*-test.*" "-d" "test/clj" "-d" "test/cljc"]}}
  :deps {juji/editscript #:mvn{:version "0.6.3"}
-        org.clojars.hephaistox/automaton-core #:mvn{:version "1.5.0-34-la"}}
+        org.clojars.hephaistox/automaton-core #:mvn{:version "1.5.0-35-la"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}
