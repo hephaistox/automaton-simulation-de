@@ -8,26 +8,26 @@
   "version": "1.0.0",
   "author": "Hephaistox <info@hephaistox.com>",
   "dependencies": {
-    "@sentry/react": "^8.26.0",
+    "@sentry/react": "^8.32.0",
     "autoprefixer": "^10.4.1",
     "axe-core": "^4.10.0",
     "create-react-class": "^15.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.16.0"
+    "react-router-dom": "^6.26.2"
   },
   "workspaces": [],
   "devDependencies": {
     "@hephaistox/tailwind-config": "hephaistox/tailwind-config#f8da71dcc315ac6f3652695a92495ea3f5298d13",
-    "@tailwindcss/forms": "^0.5.6",
+    "@tailwindcss/forms": "^0.5.9",
     "highlight.js": "^11.9.0",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "^3.2.0",
     "karma-cljs-test": "^0.1.0",
-    "marked": "^14.0.0",
-    "shadow-cljs": "^2.25.8",
+    "marked": "^14.1.2",
+    "shadow-cljs": "^2.28.15",
     "snabbdom": "^3.6.2",
-    "tailwindcss": "^3.3.2"
+    "tailwindcss": "^3.4.13"
   },
   "devDependenciesComments": {
     "marked": "marked can't be updated to 7.0.1 or higher, untill this issue is done in closure-compiler: https://github.com/google/closure-compiler/issues/2731"
