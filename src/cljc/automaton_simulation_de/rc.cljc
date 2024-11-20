@@ -66,7 +66,6 @@
             (assoc event-return ::sim-engine/state state)
             unblockings)))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn resource-update
   "Update the resource capacity."
   [{::sim-engine/keys [state]
@@ -99,9 +98,8 @@
   The `resources` is a map defining the resource available:
       * `policy` In a queue, the policy selects the next consumer that will be unblocked. (Each queue has its own policy)
       * `renewable?` When disposed, a renewable resource model is available again. Typically the toolings like wrenches, hammers, machines are most often renewable resources."
-  [model
-   {:keys [rc]
-    :as _model-data}
+  [{{::keys [rc]} ::sim-engine/model-data
+    :as model}
    unblocking-policy-registry
    preemption-policy-registry]
   (cond-> model
