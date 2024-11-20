@@ -103,7 +103,6 @@
   ([path v] #(let [ov (if (keyword? path) (get % path) (get-in % path))] (clojure.core/<= ov v)))
   ([v] #(clojure.core/<= % v)))
 
-
 (def pred-name :keyword)
 
 (def path [:or :keyword :string [:vector [:or :keyword :string]]])
@@ -122,7 +121,9 @@
 
 (def equality-predicates-lang-reg
   "Each predicate return boolean if comparison with pred-fn input can be done"
-  {::sim-pred/equal? {:doc "Compares if values are equal"
+  {::sim-pred/always-true {:doc "Returns always true"
+                           :pred-fn #(constantly true)}
+   ::sim-pred/equal? {:doc "Compares if values are equal"
                       :pred-fn is?-fn
                       :validation-fn lang-valid?}
    ::sim-pred/one-of? {:doc "compares if one of values is equal to input"

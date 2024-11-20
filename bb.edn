@@ -1,4 +1,4 @@
-{:deps {org.clojars.hephaistox/automaton-build #:mvn{:version "3.2.2"}}
+{:deps {org.clojars.hephaistox/automaton-build #:mvn{:version "3.2.3-la"}}
  :paths []
  :tasks
  {-base-deps {:doc "Dependencies for a task using bb"

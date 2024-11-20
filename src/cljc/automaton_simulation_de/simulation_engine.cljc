@@ -12,46 +12,38 @@ Discrete event simulation is modeling a real system with discrete events.
    [automaton-simulation-de.simulation-engine.impl.scheduler  :as sim-de-scheduler]
    [automaton-simulation-de.simulation-engine.response        :as sim-de-response]))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn registries "Returns the `built-in` registries of simulation-de." [] (sim-de-registry/build))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-registry
   [registry]
   (core-schema/validate-data-humanize sim-de-registry/schema registry))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-model-data
   "Validate `model-data`."
   [model-data]
   (core-schema/validate-data-humanize sim-de-model-data/schema model-data))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn build-model
   "Build the simulation model from `model-data` with `registry`.
   `registry` is optional and is defaulted to the `registries` fn."
   ([model-data] (sim-de-model/build model-data (registries)))
   ([model-data registry] (sim-de-model/build model-data registry)))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-model
   "Model - as built with `build-model` - are validated."
   [model]
   (core-schema/validate-data-humanize sim-de-model/schema model))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-middleware-data
   "Middleware data are validated."
   [middleware-data _registries]
   (core-schema/validate-data-humanize sim-de-model-data/middlewares-schema middleware-data))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-stopping-criteria-data
   [stopping-criteria-data _registries]
   (core-schema/validate-data-humanize sim-de-model-data/stopping-criterias-schema
                                       stopping-criteria-data))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn scheduler
   "Scheduler is running the simulation described in the `model`.
    There are three arities for this function.
@@ -80,14 +72,12 @@ Discrete event simulation is modeling a real system with discrete events.
                                  scheduler-stopping-criterias
                                  snapshot))))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn extract-snapshot
   "Extract the `snapshot` of a `response`."
   [{::keys [snapshot]
     :as _response}]
   snapshot)
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn validate-response
   [response]
   (core-schema/validate-data-humanize sim-de-response/schema response))

@@ -101,11 +101,13 @@
               e
               {:msg "predicate failed during execution"
                :reg reg
+               :invalid? true
                :pred pred
                :data d
                :error e}))
        {:reg reg
         :msg "predicate does not evaluated to function"
+        :invalid? true
         :pred pred
         :data d
         :error pred-fn}))))
