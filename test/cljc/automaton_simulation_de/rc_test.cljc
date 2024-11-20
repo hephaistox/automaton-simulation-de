@@ -228,23 +228,27 @@
 
 (deftest wrap-model-test
   (testing "If no resource is defined, doesn't change the model"
-    (is (nil? (sut/wrap-model nil nil nil nil)))
-    (is (nil? (sut/wrap-model nil {} nil nil))))
-  (is (= [{:a :b} #{:ra :rb}]
+    (is (nil? (sut/wrap-model nil nil nil)))
+    (is (nil? (sut/wrap-model nil nil nil))))
+  (is (= [{:a :b
+           ::sim-engine/model-data {::sut/rc {:ra nil
+                                              :rb {}}}}
+          #{:ra :rb}]
          ((juxt wo-initial-snapshot resources-kw)
-          (-> {:a :b}
-              (sut/wrap-model {:rc {:ra nil
-                                    :rb {}}}
-                              nil
-                              nil))))
+          (-> {:a :b
+               ::sim-engine/model-data {::sut/rc {:ra nil
+                                                  :rb {}}}}
+              (sut/wrap-model nil nil))))
       "Resources are added")
-  (is (= [{:a :b} #{:ra :rb :rc :rd}]
+  (is (= [{:a :b
+           ::sim-engine/model-data {::sut/rc {:rc nil
+                                              :rd {}}}}
+          #{:ra :rb :rc :rd}]
          ((juxt wo-initial-snapshot resources-kw)
           (-> {:a :b
                ::sim-engine/initial-snapshot {::sim-engine/state {::sut/resource {:ra :ra
-                                                                                  :rb :rb}}}}
-              (sut/wrap-model {:rc {:rc nil
-                                    :rd {}}}
-                              nil
-                              nil))))
+                                                                                  :rb :rb}}}
+               ::sim-engine/model-data {::sut/rc {:rc nil
+                                                  :rd {}}}}
+              (sut/wrap-model nil nil))))
       "Existing data are not overidden"))

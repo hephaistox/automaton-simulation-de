@@ -32,8 +32,6 @@
                                        [[::sim-engine/iteration-nth
                                          #:automaton-simulation-de.simulation-engine{:n 10}]])
 
-;; [infinite-model (create-chunk-computation (model-infinite) 10)
-;;  model-with-end (create-chunk-computation (model-early-stop) 5)]
 (deftest scheduler-response-test
   (let [regular-model (create-chunk-computation (model-regular) 5)
         infinite-model (create-chunk-computation (model-infinite) 10)
@@ -139,7 +137,7 @@
                      state-stp-context))
               "Specifing further iteration should yield different result")
           (is (= :p3
-                 (-> (sim-de-computation/scheduler-response regular-model mdw 8)
+                 (-> (sim-de-computation/scheduler-response regular-model mdw 7)
                      state-stp-context))
               "Specifing further iteration should yield different result")
           (is (= :p1
@@ -150,3 +148,4 @@
            (let [resp (sim-de-computation/scheduler-response regular-model mdw 20)]
              (and (= 31 (it-nb resp)) (= :no-next (::sim-de-control/status resp))))
            "Going outside of scope should return last possible iteration in finite simulation and fail status"))))))
+

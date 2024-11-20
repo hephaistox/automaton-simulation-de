@@ -1,8 +1,8 @@
 {:aliases
- {:antq {:deps {com.github.liquidz/antq {:mvn/version "2.10.1241"}}
+ {:antq {:deps {com.github.liquidz/antq {:mvn/version "2.11.1250"}}
          :main-opts ["-m" "antq.core"]}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
-                           thheller/shadow-cljs #:mvn{:version "2.28.15"}}
+                           thheller/shadow-cljs #:mvn{:version "2.28.19"}}
               :extra-paths ["src/cljs/" "src/cljc/" "resources/" "test/cljs/" "test/cljc/"]}
   :codox
   {:exec-args
@@ -18,7 +18,7 @@
   :common-test
   {:exec-fn cognitect.test-runner.api/test
    :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner"
-                                           :sha "9d36f36ff541dac680a05010e4348c744333f191"}
+                                           :sha "3f288f1f16d167723ad87cc35b1dfee3c1681e10"}
                 org.clojure/tools.namespace #:mvn{:version "1.5.0"}
                 org.clojure/tools.reader #:mvn{:version "1.5.0"}}
    :extra-paths ["test/clj/" "test/cljc/" "test/resources/"]
@@ -36,12 +36,12 @@
   :env-development-test
   {:exec-fn cognitect.test-runner.api/test
    :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner"
-                                           :sha "9d36f36ff541dac680a05010e4348c744333f191"}
+                                           :sha "3f288f1f16d167723ad87cc35b1dfee3c1681e10"}
                 org.clojure/tools.namespace {:mvn/version "1.5.0"}
                 org.clojure/tools.reader {:mvn/version "1.5.0"}}
    :jvm-opts ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/log4j2-factory"
               "-Dhephaistox-in-test=true"]
    :main-opts ["-m" "cognitect.test-runner" "-r" ".*-test.*" "-d" "test/clj" "-d" "test/cljc"]}}
  :deps {juji/editscript #:mvn{:version "0.6.4"}
-        org.clojars.hephaistox/automaton-core #:mvn{:version "1.5.2-la"}}
+        org.clojars.hephaistox/automaton-core #:mvn{:version "1.5.3-la"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}

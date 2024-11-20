@@ -96,8 +96,6 @@
   ([state val] (:current-iteration (sim-de-rendering-state/set state :pause? val)))
   ([state] (pause! state (not (:pause? (sim-de-rendering-state/get state))))))
 
-(defn- sleep [sleep-ms] (<! (timeout sleep-ms)))
-
 (defn- play*
   "Starting with `current-response` goes to next iteration response and pass it to `on-iteration-fn` with interval defined by `play-delay-fn` untill there is no next iteration possible or `pause?-fn` evaluates to true. When finished executes `on-finish-fn`"
   [computation snapshot pause?-fn play-delay-fn on-iteration-fn on-finish-fn]
@@ -109,7 +107,7 @@
         (= :no-next (::status next-iteration)) (do (on-iteration-fn next-iteration)
                                                    (on-finish-fn next-iteration))
         :else (do (on-iteration-fn next-iteration)
-                  (sleep (play-delay-fn))
+                  (<! (timeout (play-delay-fn)))
                   (recur (sim-de-computation/iteration-n
                           computation
                           (next-iteration-nb (::response next-iteration) 1))))))))

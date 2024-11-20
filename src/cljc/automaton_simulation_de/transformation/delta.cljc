@@ -1,4 +1,4 @@
-(ns automaton-simulation-de.rendering.delta
+(ns automaton-simulation-de.transformation.delta
   "Uses editscript as this library is most performant, production used, considers both size optimization and speed
    https://github.com/juji-io/editscript"
   (:require
