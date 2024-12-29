@@ -1,8 +1,8 @@
 {:aliases
- {:antq {:deps {com.github.liquidz/antq {:mvn/version "2.11.1250"}}
+ {:antq {:deps {com.github.liquidz/antq {:mvn/version "2.11.1260"}}
          :main-opts ["-m" "antq.core"]}
   :cljs-deps {:extra-deps {binaryage/devtools #:mvn{:version "1.0.7"}
-                           thheller/shadow-cljs #:mvn{:version "2.28.19"}}
+                           thheller/shadow-cljs #:mvn{:version "2.28.20"}}
               :extra-paths ["src/cljs/" "src/cljc/" "resources/" "test/cljs/" "test/cljc/"]}
   :codox
   {:exec-args
@@ -27,7 +27,7 @@
            :exec-fn deps-deploy.deps-deploy/deploy
            :extra-deps {slipset/deps-deploy {:exclusions [org.slf4j/slf4j-nop]
                                              :mvn/version "0.2.2"}}}
-  :env-development-repl {:extra-deps {org.clojure/core.async #:mvn{:version "1.6.681"}}
+  :env-development-repl {:extra-deps {org.clojure/core.async #:mvn{:version "1.7.701"}}
                          :extra-paths ["env/development/resources/"
                                        "env/development/src/clj/"
                                        "env/development/src/cljc/"]
@@ -43,6 +43,6 @@
               "-Dhephaistox-in-test=true"]
    :main-opts ["-m" "cognitect.test-runner" "-r" ".*-test.*" "-d" "test/clj" "-d" "test/cljc"]}}
  :deps {juji/editscript #:mvn{:version "0.6.4"}
-        org.clojars.hephaistox/automaton-core #:mvn{:version "1.5.3-2-la"}
-        org.clojars.hephaistox/automaton-optimization #:mvn{:version "2.3.3-2-la"}}
+        org.clojars.hephaistox/automaton-core #:mvn{:version "1.6.4-la"}
+        org.clojars.hephaistox/automaton-optimization #:mvn{:version "2.4.4-la"}}
  :paths ["src/clj/" "src/cljc/" "src/cljs/" "resources/"]}

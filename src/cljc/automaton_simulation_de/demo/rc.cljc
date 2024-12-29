@@ -2,8 +2,8 @@
 (ns automaton-simulation-de.demo.rc
   "Testing the scheduler with no other lib."
   (:require
+   [automaton-optimization.distribution                    :as opt-distribution]
    [automaton-optimization.maths                           :as opt-maths]
-   [automaton-optimization.randomness                      :as opt-randomness]
    [automaton-simulation-de.demo.data                      :as sim-demo-data]
    [automaton-simulation-de.event-library.common           :as sim-de-common]
    [automaton-simulation-de.rc                             :as sim-rc]
@@ -27,12 +27,11 @@
                           (vals currently-consuming))
                      [")"])))))
 
-
-
 (defn events
   [prng]
-  (let [next-m-dist (-> (opt-randomness/distribution-registry)
-                        (opt-randomness/build prng :uniform-int {}))]
+  (let [unif-distribution (opt-distribution/distribution {:prng prng
+                                                          :distribution-name :uniform-int
+                                                          :params {}})]
     {:MA (fn [{::sim-engine/keys [date]
                ::sim-demo-data/keys [product machine]}
               state
@@ -74,7 +73,7 @@
                                                   {::sim-engine/type :PT
                                                    ::sim-demo-data/product product}
                                                   transportation-end-time)
-                  #(let [next-machine-idx (opt-maths/mod (opt-randomness/draw next-m-dist)
+                  #(let [next-machine-idx (opt-maths/mod (opt-distribution/draw unif-distribution)
                                                          (count next-machines))
                          next-machine (nth next-machines next-machine-idx)]
                      (sim-de-event-return/add-event %
@@ -91,7 +90,7 @@
 
 (def model-data
   (-> sim-demo-data/model-data
-      (assoc ::seed [4965052502050351187 8171162042901641346])
+      (assoc ::seed #uuid "e85427c1-ed25-4ed4-9b11-52238d268265")
       (assoc ::sim-rc/rc
              {:m1 {}
               :m2 {}

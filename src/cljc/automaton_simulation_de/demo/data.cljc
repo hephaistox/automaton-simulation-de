@@ -1,6 +1,6 @@
 (ns automaton-simulation-de.demo.data
   (:require
-   [automaton-optimization.randomness         :as opt-randomness]
+   [automaton-optimization.prng               :as opt-prng]
    [automaton-simulation-de.simulation-engine :as-alias sim-engine]))
 
 ;; Problem data
@@ -35,4 +35,4 @@
                                    ::machine :m1}]
                   :stopping-criterias []}))
 
-(defn prng [seed] (opt-randomness/xoroshiro128 seed))
+(defn prng [seed] (opt-prng/xoroshiro128 seed))
