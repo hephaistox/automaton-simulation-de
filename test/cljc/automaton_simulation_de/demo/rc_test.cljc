@@ -18,7 +18,7 @@
 
 (deftest run-test
   (is (nil? (sim-engine/validate-response (sim-engine/scheduler (sut/model)))))
-  (is (= 15
+  (is (= 17
          (-> (sut/model)
              sim-engine/scheduler
              sim-engine/extract-snapshot

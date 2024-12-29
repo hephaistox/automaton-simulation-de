@@ -1,8 +1,8 @@
 #_{:heph-ignore {:forbidden-words ["tap>"]}}
 (ns automaton-simulation-de.demo.entity
   (:require
+   [automaton-optimization.distribution                    :as opt-distribution]
    [automaton-optimization.maths                           :as opt-maths]
-   [automaton-optimization.randomness                      :as opt-randomness]
    [automaton-simulation-de.demo.data                      :as sim-demo-data]
    [automaton-simulation-de.entity                         :as sim-entity]
    [automaton-simulation-de.rc                             :as sim-rc]
@@ -11,8 +11,8 @@
 
 (defn events
   [prng]
-  (let [next-entity-dist (-> (opt-randomness/distribution-registry)
-                             (opt-randomness/build prng :uniform-int {}))]
+  (let [uniform-distribution (opt-distribution/distribution {:prng prng
+                                                             :dst-name :uniform-int})]
     {:CE (fn [{::sim-engine/keys [date]
                ::keys [entity-current entity-max]
                :or {entity-current 1}}
@@ -20,7 +20,7 @@
               future-events]
            (let [product-id (keyword (str "p-" entity-current))
                  colors [:blue :purple]
-                 random-numb (opt-randomness/draw next-entity-dist)
+                 random-numb (opt-distribution/draw uniform-distribution)
                  color-idx (opt-maths/mod random-numb (count colors))
                  entity-color (nth colors color-idx)
                  route (case entity-color
@@ -155,7 +155,7 @@
               :m2 {}
               :m3 {}
               :m4 {}})
-      (assoc ::seed [-3701927706170739138 7945662584318656027])
+      (assoc ::seed #uuid "e85427c1-ed25-4ed4-9b11-52238d268265")
       (assoc ::sim-engine/ordering
              [[::sim-engine/field ::sim-engine/date]
               [::sim-engine/type [:CE :MA :MP :MT :PT]]
